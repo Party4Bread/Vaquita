@@ -96,7 +96,7 @@ namespace Orca
                             if (code[i + j] == '\n')
                                 processingLine++;
 
-                            if (code.[i + (j++)] == '*')
+                            if (code[i + (j++)] == '*')
                                 if (code[i + (j++)] == '/')
                                     break;
                         }
@@ -114,7 +114,7 @@ namespace Orca
                     {
                         Lextree lextree = new Lextree(false, processingLine);
                         lextree.lexData = tokenize(buffer);
-                        tree.branch.push(lextree);
+                        tree.branch.Add(lextree);
                     }
 
                     // 버퍼를 초기화한다.
@@ -130,7 +130,7 @@ namespace Orca
                     {
                         Lextree lextree = new Lextree(false, processingLine);
                         lextree.lexData = tokenize(buffer);
-                        tree.branch.push(lextree);
+                        tree.branch.Add(lextree);
                     }
 
                     // 괄호의 끝을 찾는다.
@@ -152,7 +152,7 @@ namespace Orca
 
                     // 괄호의 전체 내용에 대해 구문 분석을 수행한 후, 유닛에 추가한다. (시작, 끝 괄호 제외)
                     Lextree block = analyze(code.Substring(i + 1, i + j - 1));
-                    tree.branch.push(block);
+                    tree.branch.Add(block);
 
                     // 다음 과정을 준비한다.
                     buffer = "";
@@ -171,7 +171,7 @@ namespace Orca
             {
                 Lextree lextree = new Lextree(false, processingLine);
                 lextree.lexData = tokenize(buffer);
-                tree.branch.push(lextree);
+                tree.branch.Add(lextree);
             }
 
             // 분석 결과를 리턴한다.
@@ -285,7 +285,7 @@ namespace Orca
                 }
 
                 // 공백 문자가 나오면 토큰을 분리한다.
-                if (_char == ' ' || _char == '	' || _char._charCodeAt(0) == 10 || _char._charCodeAt(0) == 13)
+                if (_char == ' ' || _char == '	' || (int)_char == 10 || (int)_char == 13)
                 {
 
                     Token token = Token.findByValue(buffer.Trim(), true);
@@ -492,10 +492,10 @@ namespace Orca
                 // 새 가지일 때
                 if (tree.branch[i].hasBranch)
                 {
-                    Sys.print(space + "<begin>\n");
+                    //Sys.print(space + "<begin>\n");
 
                     viewHierarchy(tree.branch[i], level + 1);
-                    Sys.print(space + "<end>\n");
+                    //Sys.print(space + "<end>\n");
                 }
 
                 // 어휘 데이터일 때
@@ -512,7 +512,7 @@ namespace Orca
                         buffer += token.value.Trim() + "@" + token.type;
                         if (j != tree.branch[i].lexData.Count - 1) buffer += ",  ";
                     }
-                    Sys.print(space + buffer + "\n");
+                    //Sys.print(space + buffer + "\n");
                 }
             }
         }

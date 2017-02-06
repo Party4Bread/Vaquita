@@ -34,8 +34,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Assembly.cs" />
+    <Compile Include="Debug.cs" />
     <Compile Include="Lexer.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="nlib\NativeClass.cs" />
+    <Compile Include="nlib\NativeFunction.cs" />
+    <Compile Include="nlib\NativeLibrary.cs" />
     <Compile Include="Optimizer.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -45,6 +50,8 @@
     <Compile Include="symbol\Symbol.cs" />
     <Compile Include="symbol\SymbolTable.cs" />
     <Compile Include="symbol\VariableSymbol.cs" />
+    <Compile Include="syntax\ArrayReferenceSyntax.cs" />
+    <Compile Include="syntax\Syntax.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="TokenTools.cs" />
   </ItemGroup>
@@ -61,9 +68,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="syntax\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

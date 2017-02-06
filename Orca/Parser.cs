@@ -1,4 +1,5 @@
-﻿using Orca.symbol;
+﻿using Orca.nlib;
+using Orca.symbol;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,7 +43,7 @@ namespace Orca
             parseBlock(lextree, new ParseOption());
             assembly.freeze();
             // 리터럴을 어셈블리에 쓴다.
-            foreach (int i in Enumerable.Range(0, symbolTable.literals.length))
+            foreach (int i in Enumerable.Range(0, symbolTable.literals.Count))
             {
                 LiteralSymbol literal = symbolTable.literals[i];
                 assembly.writeCode("SAL " + literal.address);
@@ -60,7 +61,7 @@ namespace Orca
             // 모든 파싱이 끝나면 어셈블리 코드를 최적화한다.
             assembly.code = optimizer.optimize(assembly.code);
             // 메타데이터 추가
-            assembly.code = Std.string(symbolTable.availableAddress) + "\n" + assembly.code;
+            assembly.code = symbolTable.availableAddress.ToString() + "\n" + assembly.code;
             return assembly.code;
         }
 
@@ -75,7 +76,7 @@ namespace Orca
             int i = -1;
 
             // 라인 단위로 파싱한다.
-            while (++i < block.branch.length)
+            while (++i < block.branch.Count)
             {
 
                 Lextree line = block.branch[i];

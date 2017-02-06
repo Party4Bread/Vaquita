@@ -48,38 +48,39 @@ namespace Orca
 			}
 			// 라벨 플래그 생성이라면
 			if (lines[i].Substring(0, 5) == "FLG %")
-				flags.set(Std.parseInt(lines[i].Substring(5)), totalLines);
+				flags.Add(int.Parse(lines[i].Substring(5)), totalLines);
 			else
 				totalLines++;
 			// PUSH 문이라면
-			if (lines[i].substring(0, 3) == "PSH")
-				jumps.push(i);
+			if (lines[i].Substring(0, 3) == "PSH")
+				jumps.Add(i);
 		}
 
 		// JUMP 명령에 있는 플래그를 모두 치환한다.
-		for (i in 0...jumps.length) { 
+		foreach (int i in Enumerable.Range(0,jumps.Count)) { 
 
-			var jump:String = lines[jumps[i]];
+			string jump = lines[jumps[i]];
 
 			// 플래그가 없는 JUMP 명령은 무시한다.
-			if (jump.indexOf("%") < 0)
+			if (jump.IndexOf("%") < 0)
 				continue;
 
-			// 플래그 라인 넘버를 취득한다.
-			var lineNumber:Int = flags.get(Std.parseInt(jump.substring(jump.indexOf("%") + 1)));
+                // 플래그 라인 넘버를 취득한다.
+                int lineNumber = 0; 
+                    flags.TryGetValue(int.Parse(jump.Substring(jump.IndexOf("%") + 1)),out lineNumber);
 
 			// 플래그를 라인 넘버로 치환한다.
-			lines[jumps[i]] = jump.substring(0, jump.indexOf("%")) + Std.string(lineNumber);
+			lines[jumps[i]] = jump.Substring(0, jump.IndexOf("%")) + lineNumber.ToString();
 
 		}
 
-		var buffer:String = "";
+		string buffer = "";
 
 		// 새 명령을 반환한다.
-		for (i in 0...lines.length) { 
-			if (lines[i].length< 1)
+		foreach (int i in Enumerable.Range(0,lines.Count)) { 
+			if (lines[i].Length< 1)
 				continue;
-			if (lines[i].substring(0, 3) != "FLG")
+			if (lines[i].Substring(0, 3) != "FLG")
 				buffer += lines[i] + "\n";
 		}
 
