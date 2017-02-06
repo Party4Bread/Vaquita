@@ -219,7 +219,7 @@ namespace Orca
          * 
          * @param	type
          */
-        public Token findByType(Type type)
+        public static Token findByType(Type type)
         {
             foreach (int i in Enumerable.Range(0, definitions.Count))
             {
