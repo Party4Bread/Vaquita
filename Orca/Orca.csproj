@@ -51,6 +51,10 @@
     <Compile Include="symbol\SymbolTable.cs" />
     <Compile Include="symbol\VariableSymbol.cs" />
     <Compile Include="syntax\ArrayReferenceSyntax.cs" />
+    <Compile Include="syntax\ArraySyntax.cs" />
+    <Compile Include="syntax\AttributeSyntax.cs" />
+    <Compile Include="syntax\BreakSyntax.cs" />
+    <Compile Include="syntax\CastingSyntax.cs" />
     <Compile Include="syntax\Syntax.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="TokenTools.cs" />
