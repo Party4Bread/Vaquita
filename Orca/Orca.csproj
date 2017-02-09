@@ -59,7 +59,20 @@
     <Compile Include="syntax\ContinueSyntax.cs" />
     <Compile Include="syntax\ElseIfSyntax.cs" />
     <Compile Include="syntax\ElseSyntax.cs" />
+    <Compile Include="syntax\ForSyntax.cs" />
+    <Compile Include="syntax\FunctionCallSyntax.cs" />
+    <Compile Include="syntax\FunctionDeclarationSyntax.cs" />
+    <Compile Include="syntax\IfSyntax.cs" />
+    <Compile Include="syntax\IncludeSyntax.cs" />
+    <Compile Include="syntax\InfixSyntax.cs" />
+    <Compile Include="syntax\InstanceCreationSyntax.cs" />
+    <Compile Include="syntax\ParameterDeclarationSyntax.cs" />
+    <Compile Include="syntax\PrefixSyntax.cs" />
+    <Compile Include="syntax\ReturnSyntax.cs" />
+    <Compile Include="syntax\SuffixSyntax.cs" />
     <Compile Include="syntax\Syntax.cs" />
+    <Compile Include="syntax\VariableDeclarationSyntax.cs" />
+    <Compile Include="syntax\WhileSyntax.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="TokenTools.cs" />
   </ItemGroup>
