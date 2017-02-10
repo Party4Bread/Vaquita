@@ -35,7 +35,7 @@ namespace Orca
 
         public static void print(object message)
         {
-            //Sys.println(message);
+            IO.print(message);
         }
 
         /**
