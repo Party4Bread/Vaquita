@@ -41,6 +41,7 @@
     <Compile Include="nlib\NativeClass.cs" />
     <Compile Include="nlib\NativeFunction.cs" />
     <Compile Include="nlib\NativeLibrary.cs" />
+    <Compile Include="nlib\NativeVariable.cs" />
     <Compile Include="Optimizer.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
