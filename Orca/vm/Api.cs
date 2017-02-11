@@ -24,7 +24,7 @@ namespace Orca.vm
             Debug.print("I am Orca Virtual Machine.");
         }
 
-        public static double abs(double v)
+        public static decimal abs(decimal v)
         {
             return Math.Abs(v);
         }
@@ -49,17 +49,17 @@ namespace Orca.vm
             return Math.Atan2(y, x);
         }
 
-        public static double ceil(double v)
+        public static decimal ceil(decimal v)
         {
             return Math.Ceiling(v);
         }
 
-        public static double floor(double v)
+        public static decimal floor(decimal v)
         {
             return Math.Floor(v);
         }
 
-        public static double round(double v)
+        public static decimal round(decimal v)
         {
             return Math.Round(v);
         }
@@ -98,7 +98,7 @@ namespace Orca.vm
         {
             return Math.Exp(v);
         }
-        public static double random()
+        public static decimal random()
         {
             return new Random().Next();
         }
