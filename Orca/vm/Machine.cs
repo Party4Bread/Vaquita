@@ -16,8 +16,6 @@ namespace Orca.vm
 
         private static Dictionary<string, int> opcode = new Dictionary<string, int>();
 
-
-
         private static string undefined = "undefined";
 
         /**
@@ -31,8 +29,8 @@ namespace Orca.vm
          */
         public Memory memory;
         public List<object> register;
-        public List<object> mainStack;
-        public List<int> callStack;
+        public Stack<object> mainStack;
+        public Stack<int> callStack;
         public List<List<int>> scope;
 
         /**
@@ -81,8 +79,8 @@ namespace Orca.vm
             // 시스템 초기화
             memory = new Memory(dynamicMemoryIndex);
             register = new List<object>();
-            mainStack = new List<object>();
-            callStack = new List<int>();
+            mainStack = new Stack<object>();
+            callStack = new Stack<int>();
             scope = new List<List<int>>();
 
             // 최상위 스코프
@@ -101,69 +99,70 @@ namespace Orca.vm
                 switch (inst.opcode)
                 {
                     // PSH
-                    case 1: mainStack.Add(inst.arg);
+                    case 1: mainStack.Push(inst.arg); break;
                     // PSR	
-                    case 2: mainStack.Add(register[inst.intArg]);
+                    case 2: mainStack.Push(register[inst.intArg]); break;
                     // PSM	
-                    case 3: mainStack.Add(memory.read(inst.intArg));
+                    case 3: mainStack.Push(memory.read(inst.intArg)); break;
                     // POP	
-                    case 4: register[inst.intArg] = mainStack.pop();
+                    case 4: register[inst.intArg] = mainStack.Pop(); break;
                     // OPR	
-                    case 5: mainStack.Add(operate(inst.intArg));
+                    case 5: mainStack.Push(operate(inst.intArg)); break;
+
                     // JMP	
-                    case 6: pointer = cast(mainStack.pop(), Int); continue;
+                    case 6: pointer = Convert.ToInt32(mainStack.Pop()); continue; break;
                     // JMF	
                     case 7:
-                        var condition:Dynamic = mainStack.pop();
-                        if (mainStack.pop() <= 0)
+                        object condition = mainStack.Pop();
+                        if (Convert.ToInt32(mainStack.Pop()) <= 0)
                         {
-                            pointer = cast(condition, Int);
+                            pointer = Convert.ToInt32(condition);
                             continue;
                         }
+                        break;
                     // IVK	
-                    case 8: invoke(inst.intArg);
+                    case 8: invoke(inst.intArg); break;
                     // SAL	
-                    case 9: memory.allocate(undefined, inst.intArg); scope[scope.length - 1].Add(inst.intArg);
+                    case 9: memory.allocate(undefined, inst.intArg); scope[scope.Count - 1].Add(inst.intArg); break;
                     // SAA	
-                    case 10: memory.allocate(new Array<Dynamic>(), inst.intArg); scope[scope.length - 1].Add(inst.intArg);
+                    case 10: memory.allocate(new List<object>(), inst.intArg); scope[scope.Count - 1].Add(inst.intArg); break;
                     // DAL
-                    case 11: mainStack.Add(memory.allocate(undefined));
+                    case 11: mainStack.Push(memory.allocate(undefined)); break;
                     // DAA	
-                    case 12: mainStack.Add(memory.read(memory.allocate(new Array<Dynamic>())));
+                    case 12: mainStack.Push(memory.read(memory.allocate(new List<object>()))); break;
                     // STO	
-                    case 13: memory.write(cast(mainStack.pop(), Int), mainStack.pop());
+                    case 13: memory.write(Convert.ToInt32(mainStack.Pop()), mainStack.Pop()); break;
                     // STA	
                     case 14:
-                        var targetArray:Array < Dynamic > = cast(mainStack.pop(), Array<Dynamic>);
-                        var targetIndex:Int = cast(mainStack.pop(), Int);
-                        targetArray[targetIndex] = mainStack.pop();
+                        List<object> targetArray = mainStack.Pop() as List<object>;
+                        int targetIndex = Convert.ToInt32(mainStack.Pop());
+                        targetArray[targetIndex] = mainStack.Pop(); break;
                     // OSC
-                    case 15: scope.Add(new Array<Int>());
+                    case 15: scope.Add(new List<int>()); break;
                     // CSC
                     case 16:
-                        var currentScope:Array < Int > = scope.pop();
-                        for (j in 0...currentScope.length) memory.free(currentScope[j]);
+                        List<int> currentScope = scope[scope.Count - 1]; scope.RemoveAt(scope.Count - 1);
+                        foreach (int j in Enumerable.Range(0, currentScope.Count)) memory.free(currentScope[j]); break;
                     // FRE
-                    case 17: memory.free(inst.intArg);
+                    case 17: memory.free(inst.intArg); break;
                     // RDA	
                     case 18:
-                        List<object> targetArray = mainStack.pop() as List<object>;
-                        int targetIndex = mainStack.pop() as int;
-                        mainStack.Add(targetArray[targetIndex]);
+                        List<object> targetArray2 = mainStack.Pop() as List<object>;
+                        int targetIndex2 = Convert.ToInt32(mainStack.Pop());
+                        mainStack.Push(targetArray2[targetIndex2]); break;
                     // PSC	
-                    case 19: callStack.Add(pointer + 3);
+                    case 19: callStack.Push(pointer + 3); break;
                     // MOC	
-                    case 20: mainStack.Add(callStack.pop());
+                    case 20: mainStack.Push(callStack.Pop()); break;
                     // END	
                     case 21: break;
                     // 정의되지 않은 명령	
-                    default: Sys.println("Undefined opcode error."); break;
+                    default: IO.print("Undefined opcode error."); break;
                 }
                 pointer++;
             }
         }
-
-
+        
         private object operate(int oprcode)
         {
 
@@ -175,16 +174,72 @@ namespace Orca.vm
 
             switch (oprcode)
             {
-                case 9, 10, 46, 47, 48:
-				n1 = mainStack.pop();
-                case 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 38, 39, 40, 41, 42, 43, 44, 45, 49, 50:
-				n2 = mainStack.pop(); n1 = mainStack.pop();
-                case 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25:
-				n2 = mainStack.pop(); n1Int = cast(mainStack.pop(), Int);
-                case 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37:
-				n3 = mainStack.pop();
-                    n2Array = cast(mainStack.pop(), Array<Dynamic>);
-                    n1Int = cast(mainStack.pop(), Int);
+                case 14:
+                case 15:
+                case 16:
+                case 17:
+                case 18:
+                case 19:
+                case 20:
+                case 21:
+                case 22:
+                case 23:
+                case 24:
+                case 25:
+                    n2 = mainStack.Pop(); n1Int = Convert.ToInt32(mainStack.Pop());
+                    break;
+
+
+                case 26:
+                case 27:
+                case 28:
+                case 29:
+                case 30:
+                case 31:
+                case 32:
+                case 33:
+                case 34:
+                case 35:
+                case 36:
+                case 37:
+                    n3 = mainStack.Pop();
+                    n2Array = mainStack.Pop() as List<object>;
+                    n1Int = Convert.ToInt32(mainStack.Pop());
+                    break;
+
+
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 11:
+                case 12:
+                case 13:
+                case 38:
+                case 39:
+                case 40:
+                case 41:
+                case 42:
+                case 43:
+                case 44:
+                case 45:
+                case 49:
+                case 50:
+                    n2 = mainStack.Pop(); n1 = mainStack.Pop();
+                    break;
+
+
+                case 9:
+                case 10:
+                case 46:
+                case 47:
+                case 48:
+                    n1 = mainStack.Pop();
+                    break;
             }
             switch (oprcode)
             {
@@ -202,45 +257,45 @@ namespace Orca.vm
                 case 12: return Convert.ToInt32(n1) >> Convert.ToInt32(n2);
                 case 13: return n1.ToString() + n2.ToString();
                 case 14: return memory.write(n1Int, n2);
-                case 15: return memory.write(n1Int, memory.read(n1Int) + n2);
-                case 16: return memory.write(n1Int, memory.read(n1Int) - n2);
-                case 17: return memory.write(n1Int, memory.read(n1Int) / n2);
-                case 18: return memory.write(n1Int, memory.read(n1Int) * n2);
-                case 19: return memory.write(n1Int, memory.read(n1Int) % n2);
-                case 20: return memory.write(n1Int, memory.read(n1Int) & n2);
-                case 21: return memory.write(n1Int, memory.read(n1Int) | n2);
-                case 22: return memory.write(n1Int, memory.read(n1Int) ^ n2);
-                case 23: return memory.write(n1Int, memory.read(n1Int) << n2);
-                case 24: return memory.write(n1Int, memory.read(n1Int) >> n2);
-                case 25: return memory.write(n1Int, Std.string(memory.read(n1Int)) + Std.string(n2));
+                case 15: return memory.write(n1Int, Convert.ToDecimal(memory.read(n1Int)) + Convert.ToDecimal(n2));
+                case 16: return memory.write(n1Int, Convert.ToDecimal(memory.read(n1Int)) - Convert.ToDecimal(n2));
+                case 17: return memory.write(n1Int, Convert.ToDecimal(memory.read(n1Int)) / Convert.ToDecimal(n2));
+                case 18: return memory.write(n1Int, Convert.ToDecimal(memory.read(n1Int)) * Convert.ToDecimal(n2));
+                case 19: return memory.write(n1Int, Convert.ToDecimal(memory.read(n1Int)) % Convert.ToDecimal(n2));
+                case 20: return memory.write(n1Int, Convert.ToInt32(memory.read(n1Int)) & Convert.ToInt32(n2));
+                case 21: return memory.write(n1Int, Convert.ToInt32(memory.read(n1Int)) | Convert.ToInt32(n2));
+                case 22: return memory.write(n1Int, Convert.ToInt32(memory.read(n1Int)) ^ Convert.ToInt32(n2));
+                case 23: return memory.write(n1Int, Convert.ToInt32(memory.read(n1Int)) << Convert.ToInt32(n2));
+                case 24: return memory.write(n1Int, Convert.ToInt32(memory.read(n1Int)) >> Convert.ToInt32(n2));
+                case 25: return memory.write(n1Int, memory.read(n1Int).ToString() + n2.ToString());
                 case 26: return n2Array[n1Int] = n3;
-                case 27: return n2Array[n1Int] = n2Array[n1Int] + n3;
-                case 28: return n2Array[n1Int] = n2Array[n1Int] - n3;
-                case 29: return n2Array[n1Int] = n2Array[n1Int] / n3;
-                case 30: return n2Array[n1Int] = n2Array[n1Int] * n3;
-                case 31: return n2Array[n1Int] = n2Array[n1Int] % n3;
-                case 32: return n2Array[n1Int] = n2Array[n1Int] & n3;
-                case 33: return n2Array[n1Int] = n2Array[n1Int] | n3;
-                case 34: return n2Array[n1Int] = n2Array[n1Int] ^ n3;
-                case 35: return n2Array[n1Int] = n2Array[n1Int] << n3;
-                case 36: return n2Array[n1Int] = n2Array[n1Int] >> n3;
-                case 37: return n2Array[n1Int] = Std.string(n2Array[n1Int]) + Std.string(n3);
+                case 27: return n2Array[n1Int] = Convert.ToDecimal(n2Array[n1Int]) + Convert.ToDecimal(Convert.ToDecimal(n3));
+                case 28: return n2Array[n1Int] = Convert.ToDecimal(n2Array[n1Int]) - Convert.ToDecimal(n3);
+                case 29: return n2Array[n1Int] = Convert.ToDecimal(n2Array[n1Int]) / Convert.ToDecimal(n3);
+                case 30: return n2Array[n1Int] = Convert.ToDecimal(n2Array[n1Int]) * Convert.ToDecimal(n3);
+                case 31: return n2Array[n1Int] = Convert.ToDecimal(n2Array[n1Int]) % Convert.ToDecimal(n3);
+                case 32: return n2Array[n1Int] = Convert.ToInt32(n2Array[n1Int]) & Convert.ToInt32(n3);
+                case 33: return n2Array[n1Int] = Convert.ToInt32(n2Array[n1Int]) | Convert.ToInt32(n3);
+                case 34: return n2Array[n1Int] = Convert.ToInt32(n2Array[n1Int]) ^ Convert.ToInt32(n3);
+                case 35: return n2Array[n1Int] = Convert.ToInt32(n2Array[n1Int]) << Convert.ToInt32(n3);
+                case 36: return n2Array[n1Int] = Convert.ToInt32(n2Array[n1Int]) >> Convert.ToInt32(n3);
+                case 37: return n2Array[n1Int] = n2Array[n1Int].ToString() + n3.ToString();
                 case 38: return (n1 == n2 ? 1 : 0);
                 case 39: return (n1 != n2 ? 1 : 0);
-                case 40: return (n1 > n2 ? 1 : 0);
-                case 41: return (n1 >= n2 ? 1 : 0);
-                case 42: return (n1 < n2 ? 1 : 0);
-                case 43: return (n1 <= n2 ? 1 : 0);
-                case 44: return (n1 + n2 > 1 ? 1 : 0);
-                case 45: return (n1 + n2 > 0 ? 1 : 0);
-                case 46: return (n1 < 1 ? 1 : 0);
-                case 47: return (cast(n1, String).indexOf(".") > 0) ? Std.parseFloat(n1) : Std.parseInt(n1);
-                case 48: return Std.string(n1);
-                case 49: return Std.string(n1).charAt(cast(n2, Int));
-                case 50: return getRuntimeValue(n1, cast(n2, Int));
+                case 40: return (Convert.ToDecimal(n1) > Convert.ToDecimal(n2) ? 1 : 0);
+                case 41: return (Convert.ToDecimal(n1) >= Convert.ToDecimal(n2) ? 1 : 0);
+                case 42: return (Convert.ToDecimal(n1) < Convert.ToDecimal(n2) ? 1 : 0);
+                case 43: return (Convert.ToDecimal(n1) <= Convert.ToDecimal(n2) ? 1 : 0);
+                case 44: return (Convert.ToDecimal(n1) + Convert.ToDecimal(n2) > 1 ? 1 : 0);
+                case 45: return (Convert.ToDecimal(n1) + Convert.ToDecimal(n2) > 0 ? 1 : 0);
+                case 46: return (Convert.ToDecimal(n1) < 1 ? 1 : 0);
+                case 47: return (n1.ToString().IndexOf(".") > 0) ? Convert.ToDecimal(n1) : Convert.ToInt32(n1);
+                case 48: return n1.ToString();
+                case 49: return n1.ToString()[Convert.ToInt32(n2)];
+                case 50: return getRuntimeValue(n1, Convert.ToInt32(n2));
             }
 
-            Sys.println("Undefined oprcode error.");
+            IO.print("Undefined oprcode error.");
             return null;
         }
 
@@ -248,24 +303,24 @@ namespace Orca.vm
         {
             switch (inkcode)
             {
-                case 1: Sys.println(mainStack.pop());
-                case 2: mainStack.push(Sys.stdin().readLine());
-                case 3: Sys.println("ORCA VM(BELUGA) UNSTABLE");
-                case 4: mainStack.push(Api.abs(cast(mainStack.pop(), Float)));
-                case 5: mainStack.push(Api.acos(cast(mainStack.pop(), Float)));
-                case 6: mainStack.push(Api.asin(cast(mainStack.pop(), Float)));
-                case 7: mainStack.push(Api.atan(cast(mainStack.pop(), Float)));
-                case 8: mainStack.push(Api.atan2(cast(mainStack.pop(), Float), cast(mainStack.pop(), Float)));
-                case 9: mainStack.push(Api.ceil(cast(mainStack.pop(), Float)));
-                case 10: mainStack.push(Api.floor(cast(mainStack.pop(), Float)));
-                case 11: mainStack.push(Api.round(cast(mainStack.pop(), Float)));
-                case 12: mainStack.push(Api.cos(cast(mainStack.pop(), Float)));
-                case 13: mainStack.push(Api.sin(cast(mainStack.pop(), Float)));
-                case 14: mainStack.push(Api.tan(cast(mainStack.pop(), Float)));
-                case 15: mainStack.push(Api.log(cast(mainStack.pop(), Float)));
-                case 16: mainStack.push(Api.sqrt(cast(mainStack.pop(), Float)));
-                case 17: mainStack.push(Api.pow(cast(mainStack.pop(), Float), cast(mainStack.pop(), Float)));
-                case 18: mainStack.push(Api.random());
+                case 1: IO.print(mainStack.Pop());
+                case 2: mainStack.Push(IO.wait4Input());
+                case 3: IO.print("ORCA VM(BELUGA) UNSTABLE");
+                case 4: mainStack.Push(Api.abs(Convert.ToDecimal(mainStack.Pop())));
+                case 5: mainStack.Push(Api.acos(Convert.ToDouble(mainStack.Pop())));
+                case 6: mainStack.Push(Api.asin(Convert.ToDouble(mainStack.Pop())));
+                case 7: mainStack.Push(Api.atan(Convert.ToDouble(mainStack.Pop())));
+                case 8: mainStack.Push(Api.atan2(Convert.ToDouble(mainStack.Pop()), Convert.ToDouble(mainStack.Pop())));
+                case 9: mainStack.Push(Api.ceil(Convert.ToDecimal(mainStack.Pop())));
+                case 10: mainStack.Push(Api.floor(Convert.ToDecimal(mainStack.Pop())));
+                case 11: mainStack.Push(Api.round(Convert.ToDecimal(mainStack.Pop())));
+                case 12: mainStack.Push(Api.cos(Convert.ToDouble(mainStack.Pop())));
+                case 13: mainStack.Push(Api.sin(Convert.ToDouble(mainStack.Pop())));
+                case 14: mainStack.Push(Api.tan(Convert.ToDouble(mainStack.Pop())));
+                case 15: mainStack.Push(Api.log(Convert.ToDouble(mainStack.Pop())));
+                case 16: mainStack.Push(Api.sqrt(Convert.ToDouble(mainStack.Pop())));
+                case 17: mainStack.Push(Api.pow(Convert.ToDouble(mainStack.Pop()), Convert.ToDouble(mainStack.Pop()));
+                case 18: mainStack.Push(Api.random());
                 case 27:
                     var counterAddr:Int = cast(mainStack.pop(), Int);
                     var counterMem:Array < Dynamic > = memory.storage[counterAddr];
@@ -273,209 +328,214 @@ namespace Orca.vm
                 default: Sys.println("Undefined inkcode error.");
             }
         }
+        private object getRuntimeValue(object target, int valueType = 0)
+        {
+            switch (valueType)
+            {
+                // 배열 길이
+                case 0:
+                    return cast(target, Array<Dynamic>).length;
+                // 문자열 길이	
+                case 1:
+                    return cast(target, String).length;
+                case 2:
+                    return cast(target, String).charCodeAt(0);
+                case 3:
+                    var index:Int = cast(target, Int);
+                    return String.fromCharCode(index);
+            }
+            return null;
+        }
 
-        private object getRuntimeValue(object target, int valueType = 0) {
-		switch(valueType) {
-			// 배열 길이
-			case 0:
-				return cast(target, Array<Dynamic>).length;
-			// 문자열 길이	
-			case 1:
-				return cast(target, String).length;
-			case 2:
-				return cast(target, String).charCodeAt(0);
-			case 3:
-				var index:Int = cast(target, Int);	
-				return String.fromCharCode(index);
-		}
-		return null;
-	}
 
+        /**
+         * 어셈블리를 인스트럭션 배열로 파싱한다.
+         * 
+         * @param	assembly
+         * @return
+         */
+        private List<Instruction> parseAssembly(string assembly)
+        {
 
-/**
- * 어셈블리를 인스트럭션 배열로 파싱한다.
- * 
- * @param	assembly
- * @return
- */
-private List<Instruction> parseAssembly(string assembly) {
+            // 줄바꿈 문자로 어셈블리 코드를 구분한다.
+            string[] lines = assembly.Split('\n');
 
-    // 줄바꿈 문자로 어셈블리 코드를 구분한다.
-    string[] lines = assembly.Split('\n');
+            List<Instruction> instructions = new List<Instruction>();
 
-    List<Instruction> instructions = new List<Instruction>();
-
-		// 메타데이터를 읽는다.
-		dynamicMemoryIndex = int.Parse(lines[0]);
+            // 메타데이터를 읽는다.
+            dynamicMemoryIndex = int.Parse(lines[0]);
 		
-		for (int i in 1...lines.length) { 
+		for (int i in 1...lines.length)
+            {
 
-			var line = lines[i];
-			
-			// 명령 식별자를 읽어 온다.
-			var mnemonic = line.substring(0, 3);
+                var line = lines[i];
 
-			// 단문형 명령이라면 추가 바이트를 파싱하지 않는다.
-			if (line.length< 4) {
-				instructions.push(new Instruction(opcode.get(mnemonic)));
-				continue;
-			}
-			
-			var arg:Dynamic = null;
-			
-			// 명령의 종결 문자로 데이터 타입을 판단한다.
-			switch(line.charAt(line.length - 1)) {				
-				case "s":
-					arg = line.substring(4, line.length - 1);
-				default:
-					var rawnum:String = StringTools.trim(line.substring(4));					
-					if (rawnum.indexOf(".") > 0)
-						arg = Std.parseFloat(rawnum);
-					else					
-						arg = Std.parseInt(rawnum);
-			}
-			
-			// 명령 객체를 생성한다.
-			instructions.push(new Instruction(opcode.get(mnemonic), arg));
-		}
+                // 명령 식별자를 읽어 온다.
+                var mnemonic = line.substring(0, 3);
 
-		return instructions;
-	}
-}
+                // 단문형 명령이라면 추가 바이트를 파싱하지 않는다.
+                if (line.length < 4)
+                {
+                    instructions.push(new Instruction(opcode.get(mnemonic)));
+                    continue;
+                }
 
-/**
- * 어셈블리 인스트럭션
- */
-class Instruction
-{
+                var arg:Dynamic = null;
 
-    public int opcode;
+                // 명령의 종결 문자로 데이터 타입을 판단한다.
+                switch (line.charAt(line.length - 1))
+                {
+                    case "s":
+                        arg = line.substring(4, line.length - 1);
+                    default:
+                        var rawnum:String = StringTools.trim(line.substring(4));
+                        if (rawnum.indexOf(".") > 0)
+                            arg = Std.parseFloat(rawnum);
+                        else
+                            arg = Std.parseInt(rawnum);
+                }
 
-    // 빠른 실행을 위해 미리 캐스팅
-    public int intArg = 0;
-    public object arg;
+                // 명령 객체를 생성한다.
+                instructions.push(new Instruction(opcode.get(mnemonic), arg));
+            }
 
-    public Instruction(int opcode, object arg = null)
-    {
-        this.opcode = opcode;
-        this.arg = arg;
-
-        if (arg is int)
-        {
-            intArg = Convert.ToInt32(arg);
+            return instructions;
         }
-    }
-}
-
-
-/**
- * 가상 메모리 스토리지
- */
-class Memory
-{
-
-    public int dynamicMemoryIndex;
-    public List<List<object>> storage;
-
-    public Memory(int dynamicMemoryIndex)
-    {
-        storage = new List<List<object>>();
-
-        this.dynamicMemoryIndex = dynamicMemoryIndex;
-        storage[dynamicMemoryIndex] = new List<object>();
     }
 
     /**
-     * 메모리에 새 데이터를 할당한다.
-     * 
-     * @param	initValue
-     * @param	address
-     * @return
+     * 어셈블리 인스트럭션
      */
-    public int allocate(object initValue, int address = -1)
+    class Instruction
     {
 
-        // 동적 할당이라면 스토리지의 끝에 메모리를 할당한다.
-        if (address < 0)
+        public int opcode;
+
+        // 빠른 실행을 위해 미리 캐스팅
+        public int intArg = 0;
+        public object arg;
+
+        public Instruction(int opcode, object arg = null)
         {
-            storage.Add(new List<object>(new object[] { initValue }));
-            return storage.Count - 1;
-        }
-        // 스토리지가 없다면 생성해 준다.
-        if (storage[address] == null)
-            storage[address] = new List<object>();
+            this.opcode = opcode;
+            this.arg = arg;
 
-        List<object> memory = storage[address];
-
-        memory.Add(initValue);
-
-        return address;
-    }
-
-    /**
-	 * 데이터를 할당 해제한다.
-	 * 
-	 * @param	address
-	 */
-    public void free(int address)
-    {
-        List<object> memory = storage[address];
-
-        if (memory != null && memory.Count > 0)
-        {
-            memory.RemoveAt(memory.Count - 1); ;
+            if (arg is int)
+            {
+                intArg = Convert.ToInt32(arg);
+            }
         }
     }
 
-    /**
-	 * 메모리에 데이터를 쓴다.
-	 * 
-	 * @param	address
-	 * @param	data
-	 */
-    public object write(int address, object data)
-    {
-        List<object> memory = storage[address];
-        memory[memory.Count - 1] = data;
-        return data;
-    }
 
     /**
-	 * 메모리에 배열 데이터를 쓴다.
-	 * 
-	 * @param	address
-	 * @param	index
-	 * @param	value
-	 */
-    public object writeArray(int address, int index, object data)
+     * 가상 메모리 스토리지
+     */
+    class Memory
     {
-        List<object> array = read(address) as List<object>;
-        array[index] = data;
-        return data;
-    }
 
-    /**
-	 * 메모리로부터 데이터를 읽어 온다.
-	 * 
-	 * @param	address
-	 * @return
-	 */
-    public object read(int address)
-    {
-        List<object> memory = storage[address];
-        return memory[memory.Count - 1];
-    }
+        public int dynamicMemoryIndex;
+        public List<List<object>> storage;
 
-    /**
-	 * 메모리로부터 배열 데이터를 읽어 온다.
-	 * 
-	 * @param	address
-	 * @param	index
-	 * @return
-	 */
-    public object readArray(int address, int index)
-    {
-        List<object> array = read(address) as List<object>;
-        return array[index];
+        public Memory(int dynamicMemoryIndex)
+        {
+            storage = new List<List<object>>();
+
+            this.dynamicMemoryIndex = dynamicMemoryIndex;
+            storage[dynamicMemoryIndex] = new List<object>();
+        }
+
+        /**
+         * 메모리에 새 데이터를 할당한다.
+         * 
+         * @param	initValue
+         * @param	address
+         * @return
+         */
+        public int allocate(object initValue, int address = -1)
+        {
+
+            // 동적 할당이라면 스토리지의 끝에 메모리를 할당한다.
+            if (address < 0)
+            {
+                storage.Add(new List<object>(new object[] { initValue }));
+                return storage.Count - 1;
+            }
+            // 스토리지가 없다면 생성해 준다.
+            if (storage[address] == null)
+                storage[address] = new List<object>();
+
+            List<object> memory = storage[address];
+
+            memory.Add(initValue);
+
+            return address;
+        }
+
+        /**
+         * 데이터를 할당 해제한다.
+         * 
+         * @param	address
+         */
+        public void free(int address)
+        {
+            List<object> memory = storage[address];
+
+            if (memory != null && memory.Count > 0)
+            {
+                memory.RemoveAt(memory.Count - 1); ;
+            }
+        }
+
+        /**
+         * 메모리에 데이터를 쓴다.
+         * 
+         * @param	address
+         * @param	data
+         */
+        public object write(int address, object data)
+        {
+            List<object> memory = storage[address];
+            memory[memory.Count - 1] = data;
+            return data;
+        }
+
+        /**
+         * 메모리에 배열 데이터를 쓴다.
+         * 
+         * @param	address
+         * @param	index
+         * @param	value
+         */
+        public object writeArray(int address, int index, object data)
+        {
+            List<object> array = read(address) as List<object>;
+            array[index] = data;
+            return data;
+        }
+
+        /**
+         * 메모리로부터 데이터를 읽어 온다.
+         * 
+         * @param	address
+         * @return
+         */
+        public object read(int address)
+        {
+            List<object> memory = storage[address];
+            return memory[memory.Count - 1];
+        }
+
+        /**
+         * 메모리로부터 배열 데이터를 읽어 온다.
+         * 
+         * @param	address
+         * @param	index
+         * @return
+         */
+        public object readArray(int address, int index)
+        {
+            List<object> array = read(address) as List<object>;
+            return array[index];
+        }
     }
-}

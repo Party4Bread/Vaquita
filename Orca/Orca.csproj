@@ -78,6 +78,7 @@
     <Compile Include="Token.cs" />
     <Compile Include="TokenTools.cs" />
     <Compile Include="vm\Api.cs" />
+    <Compile Include="vm\Machine.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PCLStorage, Version=1.0.2.0, Culture=neutral, PublicKeyToken=286fe515a2c35b64, processorArchitecture=MSIL">
