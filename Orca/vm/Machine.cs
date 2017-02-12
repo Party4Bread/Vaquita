@@ -162,7 +162,7 @@ namespace Orca.vm
                 pointer++;
             }
         }
-        
+
         private object operate(int oprcode)
         {
 
@@ -303,29 +303,34 @@ namespace Orca.vm
         {
             switch (inkcode)
             {
-                case 1: IO.print(mainStack.Pop());
-                case 2: mainStack.Push(IO.wait4Input());
-                case 3: IO.print("ORCA VM(BELUGA) UNSTABLE");
-                case 4: mainStack.Push(Api.abs(Convert.ToDecimal(mainStack.Pop())));
-                case 5: mainStack.Push(Api.acos(Convert.ToDouble(mainStack.Pop())));
-                case 6: mainStack.Push(Api.asin(Convert.ToDouble(mainStack.Pop())));
-                case 7: mainStack.Push(Api.atan(Convert.ToDouble(mainStack.Pop())));
-                case 8: mainStack.Push(Api.atan2(Convert.ToDouble(mainStack.Pop()), Convert.ToDouble(mainStack.Pop())));
-                case 9: mainStack.Push(Api.ceil(Convert.ToDecimal(mainStack.Pop())));
-                case 10: mainStack.Push(Api.floor(Convert.ToDecimal(mainStack.Pop())));
-                case 11: mainStack.Push(Api.round(Convert.ToDecimal(mainStack.Pop())));
-                case 12: mainStack.Push(Api.cos(Convert.ToDouble(mainStack.Pop())));
-                case 13: mainStack.Push(Api.sin(Convert.ToDouble(mainStack.Pop())));
-                case 14: mainStack.Push(Api.tan(Convert.ToDouble(mainStack.Pop())));
-                case 15: mainStack.Push(Api.log(Convert.ToDouble(mainStack.Pop())));
-                case 16: mainStack.Push(Api.sqrt(Convert.ToDouble(mainStack.Pop())));
-                case 17: mainStack.Push(Api.pow(Convert.ToDouble(mainStack.Pop()), Convert.ToDouble(mainStack.Pop()));
-                case 18: mainStack.Push(Api.random());
+                case 1: IO.print(mainStack.Pop()); break;
+                case 2: mainStack.Push(IO.wait4Input()); break;
+                case 3: IO.print("ORCA VM(BELUGA) UNSTABLE"); break;
+                case 4: mainStack.Push(Api.abs(Convert.ToDecimal(mainStack.Pop()))); break;
+                case 5: mainStack.Push(Api.acos(Convert.ToDouble(mainStack.Pop()))); break;
+                case 6: mainStack.Push(Api.asin(Convert.ToDouble(mainStack.Pop()))); break;
+                case 7: mainStack.Push(Api.atan(Convert.ToDouble(mainStack.Pop()))); break;
+                case 8: mainStack.Push(Api.atan2(Convert.ToDouble(mainStack.Pop()), Convert.ToDouble(mainStack.Pop()))); break;
+                case 9: mainStack.Push(Api.ceil(Convert.ToDecimal(mainStack.Pop()))); break;
+                case 10: mainStack.Push(Api.floor(Convert.ToDecimal(mainStack.Pop()))); break;
+                case 11: mainStack.Push(Api.round(Convert.ToDecimal(mainStack.Pop()))); break;
+                case 12: mainStack.Push(Api.cos(Convert.ToDouble(mainStack.Pop()))); break;
+                case 13: mainStack.Push(Api.sin(Convert.ToDouble(mainStack.Pop()))); break;
+                case 14: mainStack.Push(Api.tan(Convert.ToDouble(mainStack.Pop()))); break;
+                case 15: mainStack.Push(Api.log(Convert.ToDouble(mainStack.Pop()))); break;
+                case 16: mainStack.Push(Api.sqrt(Convert.ToDouble(mainStack.Pop()))); break;
+                case 17: mainStack.Push(Api.pow(Convert.ToDouble(mainStack.Pop()), Convert.ToDouble(mainStack.Pop()))); break;
+                case 18: mainStack.Push(Api.random()); break;
                 case 27:
-                    var counterAddr:Int = cast(mainStack.pop(), Int);
-                    var counterMem:Array < Dynamic > = memory.storage[counterAddr];
-                    counterMem[counterMem.length - 1]++;
-                default: Sys.println("Undefined inkcode error.");
+                    int counterAddr = Convert.ToInt32(mainStack.Pop());
+                    //counterMem [counterMem.Count - 1]++; break;
+                    List<object> counterMem = memory.storage[counterAddr];
+                    {
+                        double __temp_ret1 = ((double)(counterMem[counterMem.Count - 1]));
+                        counterMem[counterMem.Count - 1] = (__temp_ret1 + 1.0);
+                    }
+                    break;
+                default: IO.print("Undefined inkcode error."); break;
             }
         }
         private object getRuntimeValue(object target, int valueType = 0)
@@ -334,15 +339,15 @@ namespace Orca.vm
             {
                 // 배열 길이
                 case 0:
-                    return cast(target, Array<Dynamic>).length;
+                    return target.ToString().Length;
                 // 문자열 길이	
                 case 1:
-                    return cast(target, String).length;
+                    return target.ToString().Length;
                 case 2:
-                    return cast(target, String).charCodeAt(0);
+                    return (int)target.ToString()[0];
                 case 3:
-                    var index:Int = cast(target, Int);
-                    return String.fromCharCode(index);
+                    int index = Convert.ToInt32(target);
+                    return ((char)index).ToString();
             }
             return null;
         }
@@ -365,38 +370,43 @@ namespace Orca.vm
             // 메타데이터를 읽는다.
             dynamicMemoryIndex = int.Parse(lines[0]);
 		
-		for (int i in 1...lines.length)
+		foreach (int i in Enumerable.Range(1,lines.Length))
             {
 
                 var line = lines[i];
 
                 // 명령 식별자를 읽어 온다.
-                var mnemonic = line.substring(0, 3);
+                var mnemonic = line.Substring(0, 3);
 
                 // 단문형 명령이라면 추가 바이트를 파싱하지 않는다.
-                if (line.length < 4)
+                if (line.Length < 4)
                 {
-                    instructions.push(new Instruction(opcode.get(mnemonic)));
+                    int temp = 0;
+                    opcode.TryGetValue(mnemonic,out temp);
+                    instructions.Add(new Instruction(temp));
                     continue;
                 }
 
-                var arg:Dynamic = null;
+                object arg = null;
 
                 // 명령의 종결 문자로 데이터 타입을 판단한다.
-                switch (line.charAt(line.length - 1))
+                switch (line[line.Length - 1])
                 {
-                    case "s":
-                        arg = line.substring(4, line.length - 1);
+                    case 's':
+                        arg = line.Substring(4, line.Length - 1);
+                        break;
                     default:
-                        var rawnum:String = StringTools.trim(line.substring(4));
-                        if (rawnum.indexOf(".") > 0)
-                            arg = Std.parseFloat(rawnum);
+                        string rawnum = line.Substring(4).Trim();
+                        if (rawnum.IndexOf(".") > 0)
+                            arg = Convert.ToDouble(rawnum);
                         else
-                            arg = Std.parseInt(rawnum);
+                            arg = Convert.ToInt32(rawnum);
+                        break;
                 }
-
+                int temp2 = 0;
+                opcode.TryGetValue(mnemonic, out temp2);
                 // 명령 객체를 생성한다.
-                instructions.push(new Instruction(opcode.get(mnemonic), arg));
+                instructions.Add(new Instruction(temp2, arg));
             }
 
             return instructions;
@@ -539,3 +549,4 @@ namespace Orca.vm
             return array[index];
         }
     }
+}
