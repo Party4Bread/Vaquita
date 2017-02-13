@@ -8,19 +8,19 @@ namespace Orca
 {
     public class IO
     {
-        public static string console="";
-        public static string input = "";
-        public static bool isConsolefreeze = true,isInputpending=false;
-        public static void print(object opt) {
+        public string console="";
+        public string input = "";
+        public bool isConsolefreeze = true,isInputpending=false;
+        public void print(object opt) {
             if(opt is string)
                 console += opt as string + '\n';            
         }
-        public static void read(string ipt)
+        public void read(string ipt)
         {
             input = ipt;
             isInputpending = true;
         }
-        public static string wait4Input()
+        public string wait4Input()
         {
             isConsolefreeze = false;
             while(!isInputpending)
@@ -31,6 +31,10 @@ namespace Orca
             string temp = input;
             input = "";
             return temp;
+        }
+        public string getConsole()
+        {
+            return console;
         }
     }
 }

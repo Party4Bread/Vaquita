@@ -25,8 +25,8 @@ namespace Orca
             var source:String = readSource(arguments[0]);
             if (source == null) return;
             */
-            var parser:Parser = new Parser();
-            var program:String = parser.compile(source, Sys.getCwd());
+            //var parser:Parser = new Parser();
+            //var program:String = parser.compile(source, Sys.getCwd());
             /*
             if (!Debug.errorReported)
             {

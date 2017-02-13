@@ -303,7 +303,7 @@ namespace Orca
                 {
 
                     // 토큰을 찾는다.
-                    Token result = Token.findByValue(code.Substring(i, (i + 2 < code.Length ? i + 3 : (i + 1 < code.Length ? i + 2 : i + 1))), false);
+                    Token result = Token.findByValue(code.Substring(i, (i + 2 < code.Length ? i + 3 : (i + 1 < code.Length ? i + 2 : i + 1))-i), false);
 
                     // 만약 토큰이 존재한다면,
                     if (result != null)

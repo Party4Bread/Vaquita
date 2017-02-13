@@ -31,17 +31,20 @@ namespace Orca.nlib
 
             classes = new List<NativeClass>();
             functions = new List<NativeFunction>();
-
-            NativeClass number = new NativeClass("number", []);
-            NativeClass _string = new NativeClass("string", []);
-            NativeClass boolean = new NativeClass("bool", []);
-            NativeClass array = new NativeClass("array", []);
-            NativeClass _void = new NativeClass("void", []);
+            List<NativeFunction> temp = new List<NativeFunction>();
+            NativeClass number = new NativeClass("number", temp);
+            NativeClass _string = new NativeClass("string", temp);
+            NativeClass boolean = new NativeClass("bool", temp);
+            NativeClass array = new NativeClass("array", temp);
+            NativeClass _void = new NativeClass("void", temp);
             List<string> None=new List<string>(), One = new List<string>(), Two= new List<string>();
             One.Add("number");
             Two.Add("number");
             Two.Add("number");
-            NativeFunction print = new NativeFunction("print", ["*"], "void");
+            List<string> temp2 = new List<string>();
+            temp2.Add("*");
+
+            NativeFunction print = new NativeFunction("print", temp2, "void");
             print.write("IVK 1");
 
             NativeFunction read = new NativeFunction("read", None, "string");

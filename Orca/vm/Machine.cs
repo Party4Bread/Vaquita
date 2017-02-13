@@ -11,7 +11,7 @@ namespace Orca.vm
      * 
      * @author 김 현준
      */
-    class Machine
+    public class Machine
     {
 
         private static Dictionary<string, int> opcode = new Dictionary<string, int>();
@@ -32,7 +32,7 @@ namespace Orca.vm
         public Stack<object> mainStack;
         public Stack<int> callStack;
         public List<List<int>> scope;
-
+        public IO io;
         /**
          * 프로그램
          */
@@ -82,7 +82,7 @@ namespace Orca.vm
             mainStack = new Stack<object>();
             callStack = new Stack<int>();
             scope = new List<List<int>>();
-
+            io = new IO();
             // 최상위 스코프
             scope.Add(new List<int>());
 
@@ -155,9 +155,9 @@ namespace Orca.vm
                     // MOC	
                     case 20: mainStack.Push(callStack.Pop()); break;
                     // END	
-                    case 21: break;
+                    case 21: return;
                     // 정의되지 않은 명령	
-                    default: IO.print("Undefined opcode error."); break;
+                    default: io.print("Undefined opcode error."); break;
                 }
                 pointer++;
             }
@@ -295,7 +295,7 @@ namespace Orca.vm
                 case 50: return getRuntimeValue(n1, Convert.ToInt32(n2));
             }
 
-            IO.print("Undefined oprcode error.");
+            io.print("Undefined oprcode error.");
             return null;
         }
 
@@ -303,9 +303,9 @@ namespace Orca.vm
         {
             switch (inkcode)
             {
-                case 1: IO.print(mainStack.Pop()); break;
-                case 2: mainStack.Push(IO.wait4Input()); break;
-                case 3: IO.print("ORCA VM(BELUGA) UNSTABLE"); break;
+                case 1: io.print(mainStack.Pop()); break;
+                case 2: mainStack.Push(io.wait4Input()); break;
+                case 3: io.print("ORCA VM(BELUGA) UNSTABLE"); break;
                 case 4: mainStack.Push(Api.abs(Convert.ToDecimal(mainStack.Pop()))); break;
                 case 5: mainStack.Push(Api.acos(Convert.ToDouble(mainStack.Pop()))); break;
                 case 6: mainStack.Push(Api.asin(Convert.ToDouble(mainStack.Pop()))); break;
@@ -330,7 +330,7 @@ namespace Orca.vm
                         counterMem[counterMem.Count - 1] = (__temp_ret1 + 1.0);
                     }
                     break;
-                default: IO.print("Undefined inkcode error."); break;
+                default: io.print("Undefined inkcode error."); break;
             }
         }
         private object getRuntimeValue(object target, int valueType = 0)
@@ -370,7 +370,7 @@ namespace Orca.vm
             // 메타데이터를 읽는다.
             dynamicMemoryIndex = int.Parse(lines[0]);
 		
-		foreach (int i in Enumerable.Range(1,lines.Length))
+		foreach (int i in Enumerable.Range(1,lines.Length-1 -1))
             {
 
                 var line = lines[i];
@@ -393,7 +393,7 @@ namespace Orca.vm
                 switch (line[line.Length - 1])
                 {
                     case 's':
-                        arg = line.Substring(4, line.Length - 1);
+                        arg = line.Substring(4, line.Length - 1 - 4);
                         break;
                     default:
                         string rawnum = line.Substring(4).Trim();
@@ -416,7 +416,7 @@ namespace Orca.vm
     /**
      * 어셈블리 인스트럭션
      */
-    class Instruction
+    public class Instruction
     {
 
         public int opcode;
@@ -441,7 +441,7 @@ namespace Orca.vm
     /**
      * 가상 메모리 스토리지
      */
-    class Memory
+    public class Memory
     {
 
         public int dynamicMemoryIndex;
@@ -452,7 +452,9 @@ namespace Orca.vm
             storage = new List<List<object>>();
 
             this.dynamicMemoryIndex = dynamicMemoryIndex;
-            storage[dynamicMemoryIndex] = new List<object>();
+            //storage[dynamicMemoryIndex] = new List<object>();
+            foreach (int i in Enumerable.Range(1, dynamicMemoryIndex))
+                storage.Add(new List<object>());
         }
 
         /**

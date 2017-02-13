@@ -67,8 +67,8 @@ namespace Orca
                 }
                 i++;
             }
-            elements[elementIndex++] = (tokens.GetRange(lastIndex + 1, tokens.Count-(lastIndex + 1)));
-
+            //elements[elementIndex++] = (tokens.GetRange(lastIndex + 1, tokens.Count-(lastIndex + 1)-1));
+            elements.Insert(elementIndex++,(tokens.GetRange(lastIndex + 1, tokens.Count - (lastIndex + 1))));
             return elements;
         }
 

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RE_Vaquita", "RE_Vaquita\RE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orca", "Orca\Orca.csproj", "{FFFB7843-3287-416E-8D81-F6696EB8AED2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vaquita test", "Vaquita test\Vaquita test.csproj", "{35EDDA13-8468-452D-A08E-03F607ECF04C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{FFFB7843-3287-416E-8D81-F6696EB8AED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFFB7843-3287-416E-8D81-F6696EB8AED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFFB7843-3287-416E-8D81-F6696EB8AED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35EDDA13-8468-452D-A08E-03F607ECF04C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35EDDA13-8468-452D-A08E-03F607ECF04C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35EDDA13-8468-452D-A08E-03F607ECF04C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35EDDA13-8468-452D-A08E-03F607ECF04C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

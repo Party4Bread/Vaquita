@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 namespace Orca
 {
 
-    class Parser
+    public class Parser
     {
-        public Lexer lexer;
-        public Optimizer optimizer;
-        public SymbolTable symbolTable;
+        Lexer lexer;
+        Optimizer optimizer;
+        SymbolTable symbolTable;
         private Assembly assembly;
-        public NativeLibrary nlib;
+        NativeLibrary nlib;
         public string buildPath;
         private int flagCount = 0;
         private int assignFlag()
@@ -67,7 +67,7 @@ namespace Orca
             return assembly.code;
         }
 
-        public void parseBlock(Lextree block, ParseOption option)
+        void parseBlock(Lextree block, ParseOption option)
         {
             // 현재 스코프에서 생성된 변수와 프로시져를 저장한다. (맨 마지막에 심볼 테이블에서 삭제를 위함)
             List<Symbol> definedSymbols = new List<Symbol>();
@@ -165,7 +165,7 @@ namespace Orca
                     List<string> parametersTypeList = new List<string>();
 
                     // 매개변수 각각의 유효성을 검증하고 심볼 형태로 가공한다.
-                    foreach (int k in Enumerable.Range(0, syntax.parameters.length))
+                    foreach (int k in Enumerable.Range(0, syntax.parameters.Count))
                     {
 
                         if (!ParameterDeclarationSyntax.match(syntax.parameters[k]))
@@ -835,7 +835,7 @@ namespace Orca
          * @param	lineNumber
          * @return
          */
-        public ParsedPair parseLine(List<Token> tokens, int lineNumber)
+        ParsedPair parseLine(List<Token> tokens, int lineNumber)
         {
 
             // 토큰이 비었을 경우
@@ -1668,7 +1668,7 @@ namespace Orca
          * @param	block
          * @param	scanOption
          */
-        public void scan(Lextree block, ScanOption option)
+        void scan(Lextree block, ScanOption option)
         {
 
             // 구조체 스캔일 경우 맴버변수를 저장할 공간 생성

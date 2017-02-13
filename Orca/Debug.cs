@@ -11,7 +11,7 @@ namespace Orca
      * 
      * @author 김 현준
      */
-    class Debug
+    class Debug 
     {
 
         /**
@@ -19,7 +19,7 @@ namespace Orca
          */
         public static bool supressed = false;
         public static bool errorReported = false;
-
+        public static IO io = new IO();
         /**
          * 에러를 출력한다.
          * 
@@ -35,7 +35,7 @@ namespace Orca
 
         public static void print(object message)
         {
-            IO.print(message);
+            io.print(message);
         }
 
         /**
