@@ -82,7 +82,7 @@ namespace Orca.syntax
                 return null;
             }
 
-            return new PrefixSyntax(tokens[indexOfLpo], tokens.GetRange(indexOfLpo + 1, tokens.Count));
+            return new PrefixSyntax(tokens[indexOfLpo], tokens.GetRange(indexOfLpo + 1, tokens.Count - (indexOfLpo + 1)));
         }
     }
 }

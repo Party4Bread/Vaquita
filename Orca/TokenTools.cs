@@ -62,12 +62,12 @@ namespace Orca
                     shellDepth--;
                 else if (tokens[i].type == delimiter && ((subscriptDepth == 0 && shellDepth == 0) || !sensitive))
                 {
-                    elements[elementIndex++] = tokens.GetRange(lastIndex + 1, i);
+                    elements[elementIndex++] = tokens.GetRange(lastIndex + 1, i-(lastIndex + 1));
                     lastIndex = i;
                 }
                 i++;
             }
-            elements[elementIndex++] = (tokens.GetRange(lastIndex + 1, tokens.Count));
+            elements[elementIndex++] = (tokens.GetRange(lastIndex + 1, tokens.Count-(lastIndex + 1)));
 
             return elements;
         }
@@ -82,7 +82,7 @@ namespace Orca
         {
             if (tokens[0].type == Type.ShellOpen)
                 if (indexOfShellClose(tokens, 1) == tokens.Count - 1)
-                    return tokens.GetRange(1, tokens.Count - 1);
+                    return tokens.GetRange(1, tokens.Count - 1 - 1);
             return tokens;
         }
 

@@ -109,7 +109,7 @@ namespace Orca.syntax
             List<Token> result = null;
             if (hasInitializer)
             {
-                result = tokens.GetRange(4, tokens.Count);
+                result = tokens.GetRange(4, tokens.Count-4);
                 result.Insert(0, tokens[1]);
             }
             return new VariableDeclarationSyntax(tokens[1], tokens[3], hasInitializer ? result : null);

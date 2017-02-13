@@ -108,7 +108,7 @@ namespace Orca.syntax
                 if (i % 2 == 0)
                     indexStart = seperations[i] + 1;
                 else
-                    references[indexCount++] = tokens.GetRange(indexStart, seperations[i]);
+                    references[indexCount++] = tokens.GetRange(indexStart, seperations[i] - indexStart);
             }
 
             // 레퍼런스를 리턴한다.

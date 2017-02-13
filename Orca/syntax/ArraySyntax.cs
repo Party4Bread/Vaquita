@@ -45,7 +45,7 @@ namespace Orca.syntax
          */
         public static ArraySyntax analyze(List<Token> tokens, int lineNumber)
         {
-            List<List<Token>> elements = TokenTools.getArguments(tokens.GetRange(1, tokens.Count - 1));
+            List<List<Token>> elements = TokenTools.getArguments(tokens.GetRange(1, tokens.Count - 1 - 1));
 
             ArraySyntax syntax = new ArraySyntax(elements);
             return syntax;

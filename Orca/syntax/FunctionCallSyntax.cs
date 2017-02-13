@@ -70,7 +70,7 @@ namespace Orca.syntax
             }
 
             // 함수 매개 변수를 가져온다.
-            List<List<Token>> arguments = TokenTools.split(tokens.GetRange(2, tokens.Count - 1), Type.Comma, true);
+            List<List<Token>> arguments = TokenTools.split(tokens.GetRange(2, tokens.Count - 1 - 2), Type.Comma, true);
             List<List<Token>> trimmedArguments = new List<List<Token>>();
 
             foreach (int i in Enumerable.Range(0, arguments.Count))

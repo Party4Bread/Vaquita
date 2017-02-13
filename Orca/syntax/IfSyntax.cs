@@ -71,7 +71,7 @@ namespace Orca.syntax
                 return null;
             }
 
-            return new IfSyntax(tokens.GetRange(2, tokens.Count - 1));
+            return new IfSyntax(tokens.GetRange(2, tokens.Count - 1 - 2));
         }
     }
 }

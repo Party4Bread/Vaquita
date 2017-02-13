@@ -128,7 +128,7 @@ namespace Orca.syntax
                 }
 
                 // 파라미터를 취득한다.
-                parameters = TokenTools.split(tokens.GetRange(5, indexOfShellClose), Type.Comma, true);
+                parameters = TokenTools.split(tokens.GetRange(5, indexOfShellClose-5), Type.Comma, true);
 
                 // 타겟을 파라미터의 첫 번째에 추가한다.
                 parameters.Insert(0, functionTarget);
@@ -188,7 +188,7 @@ namespace Orca.syntax
                 }
 
                 // 파라미터를 취득한다.
-                parameters = TokenTools.split(tokens.GetRange(3, indexOfShellClose), Type.Comma, true);
+                parameters = TokenTools.split(tokens.GetRange(3, indexOfShellClose-3), Type.Comma, true);
             }
 
             List<List<Token>> trimmedParameters = new List<List<Token>>();

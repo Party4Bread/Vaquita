@@ -70,7 +70,7 @@ namespace Orca.syntax
                 return null;
             }
 
-            return new ElseIfSyntax(tokens.GetRange(3, tokens.Count - 1));
+            return new ElseIfSyntax(tokens.GetRange(3, tokens.Count - 1 - 3));
         }
     }
 }

@@ -82,7 +82,7 @@ namespace Orca.syntax
             }
 
             // 증감 범위를 자른다.
-            List<Token> range = tokens.GetRange(4, tokens.Count - 1);
+            List<Token> range = tokens.GetRange(4, tokens.Count - 1 - 4);
 
             // 범위지정 토큰의 위치를 찾는다.
             int indexOfRange = TokenTools.indexOf(range, Type.From);
@@ -95,7 +95,7 @@ namespace Orca.syntax
 
             // 범위지정 토큰을 기준으로 분할한다.
             List<Token> start = range.GetRange(0, indexOfRange);
-            List<Token> end = range.GetRange(indexOfRange + 1, range.Count);
+            List<Token> end = range.GetRange(indexOfRange + 1, range.Count - (indexOfRange + 1));
 
             return new ForSyntax(tokens[2], start, end);
         }

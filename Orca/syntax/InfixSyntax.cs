@@ -88,7 +88,7 @@ namespace Orca.syntax
             // 좌항과 우항
             List<Token> left = tokens.GetRange(0, indexOfLpo);
 
-            List<Token> right = tokens.GetRange(indexOfLpo + 1, tokens.Count);
+            List<Token> right = tokens.GetRange(indexOfLpo + 1, tokens.Count-(indexOfLpo + 1));
 
             return new InfixSyntax(_operator, left, right);
         }
