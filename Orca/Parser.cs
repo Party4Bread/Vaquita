@@ -1,5 +1,7 @@
-﻿using Orca.nlib;
+﻿using Orca;
+using Orca.nlib;
 using Orca.symbol;
+using Orca.syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -129,7 +131,7 @@ namespace Orca
                     syntax.variableName.setTag(variable);
 
                     // 정의된 심볼 목록에 추가한다.
-                    definedSymbols.push(variable);
+                    definedSymbols.Add(variable);
 
                     // 어셈블리에 변수의 메모리 어드레스 할당 명령을 추가한다.				
                     if (variable.isNumber() || variable.isString())
@@ -177,14 +179,14 @@ namespace Orca
                         if (parameterSyntax == null)
                             continue;
 
-                        parametersTypeList.push(parameterSyntax.parameterType.value);
+                        parametersTypeList.Add(parameterSyntax.parameterType.value);
                     }
 
                     // 테이블에서 함수 심볼을 가져온다. (이미 스캐닝 과정에서 함수가 테이블에 등록되었으므로)
                     FunctionSymbol functn = symbolTable.getFunction(syntax.functionName.value, parametersTypeList);
 
                     // 함수 심볼을 정의된 심볼 목록에 추가한다.
-                    definedSymbols.push(functn);
+                    definedSymbols.Add(functn);
 
                     // 다음 라인이 블록 형태인지 확인한다.
                     if (!hasNextBlock(block, i))
@@ -209,7 +211,7 @@ namespace Orca
                     functionOption.parentFunction = functn;
 
                     // 파라미터 변수를 추가/할당한다.
-                    foreach (int j in Enumerable.Range(0, functn.parameters.length))
+                    foreach (int j in Enumerable.Range(0, functn.parameters.Count))
                     {
                         // 심볼 테이블에 추가한다.
                         symbolTable.add(functn.parameters[j]);
@@ -219,7 +221,7 @@ namespace Orca
                     parseBlock(block.branch[++i], functionOption);
 
                     // 파라미터 변수를 제거한다.				
-                    foreach (int j in Enumerable.Range(0, functn.parameters.length))
+                    foreach (int j in Enumerable.Range(0, functn.parameters.Count))
                     {
                         symbolTable.remove(functn.parameters[j]);
                     }
@@ -256,7 +258,7 @@ namespace Orca
                     }
 
                     // 클래스 정의를 취득한다.
-                    ClassSymbol klass = cast(symbolTable.getClass(syntax.className.value), ClassSymbol);
+                    ClassSymbol klass = symbolTable.getClass(syntax.className.value) as ClassSymbol;
 
                     // 클래스 내부의 클래스일 경우 구현부를 스캔한다.
                     if (option.inStructure)
@@ -281,7 +283,7 @@ namespace Orca
                     parseBlock(block.branch[++i], classOption);
 
                     // 정의된 심볼 목록에 추가한다.
-                    definedSymbols.push(klass);
+                    definedSymbols.Add(klass);
                 }
                 else if (IfSyntax.match(tokens))
                 {
@@ -529,11 +531,13 @@ namespace Orca
 
                     // for문의 기본 구성인 n -> k 에서 이는 기본적으로 while(n <= k)를 의미하므로 동치인 명령을
                     // 생성한다.
-                    List<Token> condition = TokenTools.merge([
-
-
-                     [syntax.counter, Token.findByType(Type.LessThanOrEqualTo)], syntax.end
-               ]);
+                    List<Token> temp = new List<Token>();
+                    temp.Add(syntax.counter);
+                    temp.Add(Token.findByType(Type.LessThanOrEqualTo));
+                    List<List<Token>> temp2 = new List<List<Token>>();
+                    temp2.Add(temp);
+                    temp2.Add(syntax.end);
+                    List<Token> condition = TokenTools.merge(temp2);
                     ParsedPair parsedCondition = parseLine(condition, lineNumber);
 
                     if (parsedCondition == null)
@@ -712,7 +716,7 @@ namespace Orca
                     {
 
                         // 반환값이 존재하면 에러를 출력한다.
-                        if (syntax.returnValue.length > 0)
+                        if (syntax.returnValue.Count > 0)
                         {
                             Debug.reportError("Syntax error 20", "void형 함수는 값을 반환할 수 없습니다.", lineNumber);
                             continue;
@@ -831,9 +835,7 @@ namespace Orca
          * @param	lineNumber
          * @return
          */
-        public
-
-        ParsedPair parseLine(List<Token> tokens, int lineNumber)
+        public ParsedPair parseLine(List<Token> tokens, int lineNumber)
         {
 
             // 토큰이 비었을 경우
@@ -917,27 +919,29 @@ namespace Orca
                 List<string> argumentsTypeList = new List<string>();
 
                 // 각각의 파라미터를 파싱한다.
-                foreach (int i in Enumerable.Range(0, syntax.functionArguments.length))
+                foreach (int i in Enumerable.Range(0, syntax.functionArguments.Count))
                 {
 
                     // 파라미터가 비었을 경우
-                    if (syntax.functionArguments[syntax.functionArguments.length - 1 - i].length < 1)
+                    if (syntax.functionArguments[syntax.functionArguments.Count - 1 - i].Count < 1)
                     {
                         Debug.reportError("Syntax error 28", "파라미터가 비었습니다.", lineNumber);
                         return null;
                     }
 
                     // 파라미터를 파싱한다.
-                    ParsedPair parsedArgument = parseLine(syntax.functionArguments[syntax.functionArguments.length - 1 - i], lineNumber);
+                    ParsedPair parsedArgument = parseLine(syntax.functionArguments[syntax.functionArguments.Count - 1 - i], lineNumber);
 
                     if (parsedArgument == null)
                         return null;
 
                     // 파라미터를 쌓는다.
-                    arguments.push(parsedArgument.data);
-                    argumentsTypeList.insert(0, parsedArgument.type);
+                    arguments.Add(parsedArgument.data);
+                    argumentsTypeList.Insert(0, parsedArgument.type);
                 }
-                arguments.push([syntax.functionName]);
+                List<Token> temp = new List<Token>();
+                temp.Add(syntax.functionName);
+                arguments.Add(temp);
 
                 // 함수 심볼을 취득한다.
                 FunctionSymbol functn = symbolTable.getFunction(syntax.functionName.value, argumentsTypeList);
@@ -965,23 +969,25 @@ namespace Orca
                 List<List<Token>> parsedElements = new List<List<Token>>();
 
                 // 배열 리터럴의 각 원소를 파싱한 후 스택에 쌓는다.
-                foreach (int i in Enumerable.Range(0, syntax.elements.length))
+                foreach (int i in Enumerable.Range(0, syntax.elements.Count))
                 {
 
                     // 배열의 원소가 유효한지 체크한다.
-                    if (syntax.elements[syntax.elements.length - 1 - i].length < 1)
+                    if (syntax.elements[syntax.elements.Count - 1 - i].Count < 1)
                     {
                         continue;
                     }
 
                     // 배열의 원소를 파싱한다.
-                    ParsedPair parsedElement = parseLine(syntax.elements[syntax.elements.length - 1 - i], lineNumber);
+                    ParsedPair parsedElement = parseLine(syntax.elements[syntax.elements.Count - 1 - i], lineNumber);
 
                     if (parsedElement == null)
                         return null;
 
-                    parsedElements.push(parsedElement.data);
-                    parsedElements.push([new Token(Type.Number, Std.string(syntax.elements.length - 1 - i))]);
+                    parsedElements.Add(parsedElement.data);
+                    List<Token> temp = new List<Token>();
+                    temp.Add(new Token(Type.Number, (syntax.elements.Count - 1 - i).ToString()));
+                    parsedElements.Add(temp);
                 }
 
                 /*
@@ -990,7 +996,7 @@ namespace Orca
                  * A1, A2, A3, ... An, ARRAY_LITERAL(n)
                  */
                 List<Token> mergedElements = TokenTools.merge(parsedElements);
-                mergedElements.push(new Token(Type.Array, Std.string(parsedElements.Count)));//weird
+                mergedElements.Add(new Token(Type.Array, parsedElements.Count.ToString()));//weird
 
 
                 return new ParsedPair(mergedElements, "array");
@@ -1003,12 +1009,12 @@ namespace Orca
             {
 
                 // 객체 정보 취득
-                var syntax: InstanceCreationSyntax = InstanceCreationSyntax.analyze(tokens, lineNumber);
+                InstanceCreationSyntax syntax = InstanceCreationSyntax.analyze(tokens, lineNumber);
 
                 if (syntax == null)
                     return null;
 
-                var targetClass: ClassSymbol = symbolTable.getClass(syntax.instanceType.value);
+                ClassSymbol targetClass = symbolTable.getClass(syntax.instanceType.value);
 
                 if (targetClass == null)
                 {
@@ -1018,8 +1024,10 @@ namespace Orca
 
                 // 토큰에 오브젝트 태그
                 syntax.instanceType.setTag(targetClass);
-
-                return new ParsedPair([syntax.instanceType, Token.findByType(Type.Instance)], targetClass.id);
+                List<Token> temp = new List<Token>();
+                temp.Add(syntax.instanceType);
+                temp.Add(Token.findByType(Type.Instance));
+                return new ParsedPair(temp, targetClass.id);
             }
 
             /**
@@ -1028,949 +1036,985 @@ namespace Orca
             else if (AttributeSyntax.match(tokens))
             {
 
-                var syntax: AttributeSyntax = AttributeSyntax.analyze(tokens, lineNumber);
+                AttributeSyntax syntax = AttributeSyntax.analyze(tokens, lineNumber);
 
                 if (syntax == null)
                     return null;
 
-                var target: Array < Token >= syntax.attributes[0];
-                var parentClass: ClassSymbol = null;
+                List<Token> target = syntax.attributes[0];
+                ClassSymbol parentClass = null;
 
                 // 타겟을 파싱한다. 타입은 무조건 array 계열
-                var parsedTarget: ParsedPair = parseLine(target, lineNumber);
+                ParsedPair parsedTarget = parseLine(target, lineNumber);
                 parentClass = symbolTable.getClass(parsedTarget.type);
 
-                var parsedAttributes: Array < Array < Token >>= new Array<Array<Token>>();
-                parsedAttributes.push(parsedTarget.data);
+                List<List<Token>> parsedAttributes = new List<List<Token>>();
+                parsedAttributes.Add(parsedTarget.data);
 
                 // 각각의 속성을 파싱한다.
-                for (j in 1...syntax.attributes.length)
+                foreach (int j in Enumerable.Range(1, syntax.attributes.Count))
                 {
-                    var attribute: Array < Token >= syntax.attributes[j];
+                    List<Token> attribute = syntax.attributes[j];
 
                     // 함수형일 경우
                     if (FunctionCallSyntax.match(attribute))
                     {
 
-                        var functionSyntax: FunctionCallSyntax = FunctionCallSyntax.analyze(attribute, lineNumber);
+                        FunctionCallSyntax functionSyntax = FunctionCallSyntax.analyze(attribute, lineNumber);
 
                         if (functionSyntax == null)
                             continue;
 
                         // 맨 앞의 파라미터는 앞쪽과 자연스럽게 연결됨.
-                        var parsedFunction: Array < Array < Token >>= [];
-                        var typeList: Array < String >= [parentClass.id];
+                        List<List<Token>> parsedFunction = new List<List<Token>>();
+                        List<string> typeList = new List<string>();
+                        typeList.Add(parentClass.id);
 
                         // 매개 변수를 파싱하면서, 함수를 찾기 위한 타입 리스트를 만든다.
-                        for (i in 0...functionSyntax.functionArguments.length)
+                        foreach (int i in Enumerable.Range(0, functionSyntax.functionArguments.Count))
                         {
-                            var parsedArgument: ParsedPair = parseLine(functionSyntax.functionArguments[i], lineNumber);
+                            ParsedPair parsedArgument = parseLine(functionSyntax.functionArguments[i], lineNumber);
                             if (parsedArgument == null) continue;
 
-                            parsedFunction.push(parsedArgument.data);
-                            typeList.push(parsedArgument.type);
+                            parsedFunction.Add(parsedArgument.data);
+                            typeList.Add(parsedArgument.type);
                         }
 
                         // 함수 심볼을 취득한다.
-                        var functionSymbol: FunctionSymbol = symbolTable.getFunction(functionSyntax.functionName.value, typeList);
+                        FunctionSymbol functionSymbol = symbolTable.getFunction(functionSyntax.functionName.value, typeList);
 
                         if (functionSymbol == null)
                         {
-
-                            trace(typeList);
+                            //trace(typeList);
                             Debug.reportError("Undefined error 351", "속성을 찾을 수 없습니다.", lineNumber);
                             return null;
                         }
                         functionSyntax.functionName.setTag(functionSymbol);
-                        parsedFunction.push([functionSyntax.functionName]);
+                        List<Token> temp = new List<Token>();
+                        temp.Add(functionSyntax.functionName);
+                        parsedFunction.Add(temp);
 
-                // 일렬로 줄 세운 후 파싱된 속성 목록에 추가한다.
-                parsedAttributes.push(TokenTools.merge(parsedFunction));
+                        // 일렬로 줄 세운 후 파싱된 속성 목록에 추가한다.
+                        parsedAttributes.Add(TokenTools.merge(parsedFunction));
 
-                // 다음 속성을 위해 parentClass를 지정해 준다.
-                parentClass = symbolTable.getClass(functionSymbol.type);
-            }
+                        // 다음 속성을 위해 parentClass를 지정해 준다.
+                        parentClass = symbolTable.getClass(functionSymbol.type);
+                    }
 
-            // 데이터 참조(변수) 일 경우 맴버 인덱스를 검색해서 배열 참조 형태로 리턴
-            else
-            {
-
-                // 두개 이상으로 이루어져 있을 경우, (괄호형이나 배열은 첫 번째에서만 허용함)
-                if (attribute.length > 1)
-                {
-                    Debug.reportError("Syntax Error 3333", "Unexpected Token", lineNumber);
-                    return null;
-                }
-                // 속성을 찾는다.	
-                var memberSymbol: VariableSymbol = parentClass.findMemberByID(attribute[0].value);
-
-                if (memberSymbol == null)
-                {
-                    Debug.reportError("Undefined error 424", "속성을 찾을 수 없습니다.", lineNumber);
-                    return null;
-                }
-                attribute[0].setTag(memberSymbol);
-
-                var memberIndex: Int = 0;
-                for (k in 0...parentClass.members.length)
-                {
-                    if (parentClass.members[k] == memberSymbol)
+                    // 데이터 참조(변수) 일 경우 맴버 인덱스를 검색해서 배열 참조 형태로 리턴
+                    else
                     {
-                        memberIndex = k;
-                        break;
+
+                        // 두개 이상으로 이루어져 있을 경우, (괄호형이나 배열은 첫 번째에서만 허용함)
+                        if (attribute.Count > 1)
+                        {
+                            Debug.reportError("Syntax Error 3333", "Unexpected Token", lineNumber);
+                            return null;
+                        }
+                        // 속성을 찾는다.	
+                        VariableSymbol memberSymbol = parentClass.findMemberByID(attribute[0].value);
+
+                        if (memberSymbol == null)
+                        {
+                            Debug.reportError("Undefined error 424", "속성을 찾을 수 없습니다.", lineNumber);
+                            return null;
+                        }
+                        attribute[0].setTag(memberSymbol);
+
+                        int memberIndex = 0;
+                        foreach (int k in Enumerable.Range(0, parentClass.members.Count))
+                        {
+                            if (parentClass.members[k] == memberSymbol)
+                            {
+                                memberIndex = k;
+                                break;
+                            }
+                        }
+
+                        // 맴버 인덱스 토큰
+                        Token memberIndexToken = new Token(Type.Number, memberIndex.ToString());
+
+                        // A[a][b][c] 를 c b a A Array_reference(3) 로 배열한다. 즉					
+
+                        // 파싱된 속성 목록의 가장 앞에 추가한다.
+                        List<Token> temp = new List<Token>();
+                        temp.Add(memberIndexToken);
+                        parsedAttributes.Insert(0, temp);
+                        temp = new List<Token>();
+                        temp.Add(new Token(Type.ArrayReference, "1"));
+                        parsedAttributes.Add(temp);
+
+                        // 다음 속성을 위해 parentClass를 지정해 준다.
+                        parentClass = symbolTable.getClass(memberSymbol.type);
                     }
                 }
 
-                // 맴버 인덱스 토큰
-                var memberIndexToken: Token = new Token(Token.Type.Number, Std.string(memberIndex));
+                // 속성을 일렬로 줄 세운 후, 리턴한다.
+                List<Token> mergedAttributes = TokenTools.merge(parsedAttributes);
 
-                // A[a][b][c] 를 c b a A Array_reference(3) 로 배열한다. 즉					
-
-                // 파싱된 속성 목록의 가장 앞에 추가한다.
-                parsedAttributes.insert(0, [memberIndexToken]);
-                parsedAttributes.push([new Token(Type.ArrayReference, "1")]);
-
-                // 다음 속성을 위해 parentClass를 지정해 준다.
-                parentClass = symbolTable.getClass(memberSymbol.type);
+                return new ParsedPair(mergedAttributes, parentClass.id);
             }
-        }
 
-        // 속성을 일렬로 줄 세운 후, 리턴한다.
-        var mergedAttributes: Array<Token >= TokenTools.merge(parsedAttributes);
+            /**
+             * 배열 참조: a[1][2]
+             */
+            else if (ArrayReferenceSyntax.match(tokens))
+            {
 
-    return new ParsedPair(mergedAttributes, parentClass.id);
-    }
+                /*
+                 * 배열 인덱스 연산자는 우선순위가 가장 높고, 도트보다 뒤에 처리되므로 배열 인덱스 열기 문자 ('[')로 구분되는
+                 * 토큰은 단일 변수의 n차 접근으로만 표시될 수 있다. 즉 이 프로시져에서 걸리는 토큰열은 모두 A[N]...[N]의
+                 * 형태를 하고 있다. (단 A는 변수거나 프로시져)
+                 * 
+                 * A[1][2] -> GET 0, A 1 -> GET 1, 0, 2 -> PSH 1
+                 */
 
-   /**
-    * 배열 참조: a[1][2]
-    */
-   else if (ArrayReferenceSyntax.match(tokens)) {
+                // 배열 참조 구문을 분석한다.
+                ArrayReferenceSyntax syntax = ArrayReferenceSyntax.analyze(tokens, lineNumber);
 
-    /*
-     * 배열 인덱스 연산자는 우선순위가 가장 높고, 도트보다 뒤에 처리되므로 배열 인덱스 열기 문자 ('[')로 구분되는
-     * 토큰은 단일 변수의 n차 접근으로만 표시될 수 있다. 즉 이 프로시져에서 걸리는 토큰열은 모두 A[N]...[N]의
-     * 형태를 하고 있다. (단 A는 변수거나 프로시져)
-     * 
-     * A[1][2] -> GET 0, A 1 -> GET 1, 0, 2 -> PSH 1
-     */
+                if (syntax == null)
+                    return null;
 
-    // 배열 참조 구문을 분석한다.
-    var syntax: ArrayReferenceSyntax = ArrayReferenceSyntax.analyze(tokens, lineNumber);
+                VariableSymbol array = symbolTable.getVariable(syntax.array.value);
 
-    if (syntax == null)
-     return null;
+                if (array == null)
+                {
+                    Debug.reportError("Undefined Error 34", "정의되지 않은 배열입니다.", lineNumber);
+                    return null;
+                }
+                syntax.array.setTag(array);
 
-    var array: VariableSymbol = symbolTable.getVariable(syntax.array.value);
+                // 변수가 배열이 아닐 경우, 문자열 인덱스값 읽기로 처리
+                if (array.type != "array")
+                {
 
-    if (array == null) {
-     Debug.reportError("Undefined Error 34", "정의되지 않은 배열입니다.", lineNumber);
-     return null;
-    }
-syntax.array.setTag(array);
+                    // 변수가 문자열도 아니면, 에러
+                    if (array.type != "string")
+                    {
+                        Debug.reportError("Type error 35", "인덱스 참조는 배열에서만 가능합니다.", lineNumber);
+                        return null;
+                    }
 
-    // 변수가 배열이 아닐 경우, 문자열 인덱스값 읽기로 처리
-    if (array.type != "array") {
+                    // 문자열 인덱스 참조 명령을 처리한다.
+                    if (syntax.references.Count != 1)
+                    {
+                        Debug.reportError("Type error 36", "문자열을 n차원 배열처럼 취급할 수 없습니다.", lineNumber);
+                        return null;
+                    }
 
-     // 변수가 문자열도 아니면, 에러
-     if (array.type != "string") {
-      Debug.reportError("Type error 35", "인덱스 참조는 배열에서만 가능합니다.", lineNumber);
-      return null;
-     }
+                    // index A CharAt 의 순서로 배열한다.
+                    ParsedPair parsedIndex = parseLine(syntax.references[0], lineNumber);
 
-     // 문자열 인덱스 참조 명령을 처리한다.
-     if (syntax.references.length != 1) {
-      Debug.reportError("Type error 36", "문자열을 n차원 배열처럼 취급할 수 없습니다.", lineNumber);
-      return null;
-     }
+                    // 인덱스 파싱 중 에러가 발생했다면 건너 뛴다.
+                    if (parsedIndex == null)
+                        return null;
 
-     // index A CharAt 의 순서로 배열한다.
-     var parsedIndex: ParsedPair = parseLine(syntax.references[0], lineNumber);
+                    // 인덱스가 정수가 아닐 경우
+                    if (parsedIndex.type != "number")
+                    {
+                        Debug.reportError("Type error 37", "문자열의 인덱스가 정수가 아닙니다.", lineNumber);
+                        return null;
+                    }
 
-     // 인덱스 파싱 중 에러가 발생했다면 건너 뛴다.
-     if (parsedIndex == null)
-      return null;
+                    List<Token> _result = new List<Token>();
+                    _result.Add(syntax.array);
+                    _result.Concat(parsedIndex.data);
+                    _result.Add(Token.findByType(Type.CharAt));
 
-     // 인덱스가 정수가 아닐 경우
-     if (parsedIndex.type != "number") {
-      Debug.reportError("Type error 37", "문자열의 인덱스가 정수가 아닙니다.", lineNumber);
-      return null;
-     }
+                    // 결과를 리턴한다.
+                    return new ParsedPair(_result, "string");
+                }
 
-     var result: Array<Token >= new Array<Token> ();
-     result.push(syntax.array);
-     result = result.concat(parsedIndex.data);
-     result.push(Token.findByType(Type.CharAt));
+                // 파싱된 인덱스들
+                List<List<Token>> parsedReferences = new List<List<Token>>();
 
-     // 결과를 리턴한다.
-     return new ParsedPair(result, "string");
-    }
+                // 가장 낮은 인덱스부터 차례로 파싱한다.
+                foreach (int i in Enumerable.Range(0,syntax.references.Count))
+                {
 
-    // 파싱된 인덱스들
-    var parsedReferences: Array<Array<Token>>= new Array<Array<Token>> ();
+                    List<Token> reference = syntax.references[syntax.references.Count - 1 - i];
 
-    // 가장 낮은 인덱스부터 차례로 파싱한다.
-    for (i in 0...syntax.references.length) {
+                    ParsedPair parsedReference = parseLine(reference, lineNumber);
 
-     var reference: Array<Token >= syntax.references[syntax.references.length - 1 - i];
+                    if (parsedReference == null)
+                        continue;
 
-     var parsedReference: ParsedPair = parseLine(reference, lineNumber);
+                    // 인덱스가 정수가 아닐 경우
+                    if (parsedReference.type != "number")
+                    {
+                        Debug.reportError("Type error 38", "배열의 인덱스가 정수가 아닙니다.", lineNumber);
+                        continue;
+                    }
 
-     if (parsedReference == null)
-      continue;
+                    // 할당
+                    parsedReferences.Add(parsedReference.data);
+                }
 
-     // 인덱스가 정수가 아닐 경우
-     if (parsedReference.type != "number") {
-      Debug.reportError("Type error 38", "배열의 인덱스가 정수가 아닙니다.", lineNumber);
-      continue;
-     }
+                // A[a][b][c] 를 c b a A Array_reference(3) 로 배열한다.
+                List<Token> result = TokenTools.merge(parsedReferences);
+                result.Add(syntax.array);
+                result.Add(new Token(Type.ArrayReference, parsedReferences.Count.ToString()));
 
-     // 할당
-     parsedReferences.push(parsedReference.data);
-    }
+                // 리턴 타입은 어떤 타입이라도 될 수 있다.
+                return new ParsedPair(result, "*");
+            }
 
-    // A[a][b][c] 를 c b a A Array_reference(3) 로 배열한다.
-    var result: Array<Token >= TokenTools.merge(parsedReferences);
-    result.push(syntax.array);
-    result.push(new Token(Type.ArrayReference, Std.string(parsedReferences.length)));
+            /**
+             * 캐스팅: stuff as number
+             */
+            else if (CastingSyntax.match(tokens))
+            {
 
-    // 리턴 타입은 어떤 타입이라도 될 수 있다.
-    return new ParsedPair(result, "*");
-   }
+                CastingSyntax syntax = CastingSyntax.analyze(tokens, lineNumber);
 
-   /**
-    * 캐스팅: stuff as number
-    */
-   else if (CastingSyntax.match(tokens)) {
+                if (syntax == null)
+                    return null;
 
-    var syntax: CastingSyntax = CastingSyntax.analyze(tokens, lineNumber);
-
-    if (syntax == null)
-     return null;
-
-    // 캐스팅 대상을 파싱한 후 끝에 캐스팅 명령을 추가한다.
-    var parsedTarget: ParsedPair = parseLine(syntax.target, lineNumber);
+                // 캐스팅 대상을 파싱한 후 끝에 캐스팅 명령을 추가한다.
+                ParsedPair parsedTarget = parseLine(syntax.target, lineNumber);
 
 
 
-    if (parsedTarget == null)
-     return null;
+                if (parsedTarget == null)
+                    return null;
 
-    // 문자형으로 캐스팅
-    if (syntax.castingType == "string") {
+                // 문자형으로 캐스팅
+                if (syntax.castingType == "string")
+                {
 
-     // 아직은 숫자 -> 문자만 가능하다.
-     if (parsedTarget.type != "number" && parsedTarget.type != "bool" && parsedTarget.type != "*") {
-      Debug.reportError("Type error 39", "이 타입을 문자형으로 캐스팅할 수 없습니다.", lineNumber);
-      return null;
-     }
+                    // 아직은 숫자 -> 문자만 가능하다.
+                    if (parsedTarget.type != "number" && parsedTarget.type != "bool" && parsedTarget.type != "*")
+                    {
+                        Debug.reportError("Type error 39", "이 타입을 문자형으로 캐스팅할 수 없습니다.", lineNumber);
+                        return null;
+                    }
 
-     var result: Array<Token >= parsedTarget.data;
-     result.push(Token.findByType(Type.CastToString));
+                    List<Token> result = parsedTarget.data;
+                    result.Add(Token.findByType(Type.CastToString));
 
-     // 캐스팅된 문자열을 출력
-     return new ParsedPair(result, "string");
-    }
+                    // 캐스팅된 문자열을 출력
+                    return new ParsedPair(result, "string");
+                }
 
-    // 실수형으로 캐스팅
-    else if (syntax.castingType == "number") {
+                // 실수형으로 캐스팅
+                else if (syntax.castingType == "number")
+                {
 
-     // 아직은 문자 -> 숫자만 가능하다.
-     if (parsedTarget.type != "string" && parsedTarget.type != "bool" && parsedTarget.type != "*") {
-      Debug.reportError("Type error 40", "이 타입을 실수형으로 캐스팅할 수 없습니다.", lineNumber);
-      return null;
-     }
+                    // 아직은 문자 -> 숫자만 가능하다.
+                    if (parsedTarget.type != "string" && parsedTarget.type != "bool" && parsedTarget.type != "*")
+                    {
+                        Debug.reportError("Type error 40", "이 타입을 실수형으로 캐스팅할 수 없습니다.", lineNumber);
+                        return null;
+                    }
 
-     var result: Array<Token >= parsedTarget.data;
-     result.push(Token.findByType(Type.CastToNumber));
+                    List<Token> result = parsedTarget.data;
+                    result.Add(Token.findByType(Type.CastToNumber));
 
-     // 캐스팅된 문자열을 출력
-     return new ParsedPair(result, "number");
-    }
+                    // 캐스팅된 문자열을 출력
+                    return new ParsedPair(result, "number");
+                }
 
-    // 그 외의 경우
-    else {
+                // 그 외의 경우
+                else
+                {
 
-     // 캐스팅 타입이 적절한지 체크한다.
-     if (symbolTable.getClass(syntax.castingType) == null) {
-      Debug.reportError("Undefined Error 41", "올바르지 않은 타입입니다.", lineNumber);
-      return null;
-     }
+                    // 캐스팅 타입이 적절한지 체크한다.
+                    if (symbolTable.getClass(syntax.castingType) == null)
+                    {
+                        Debug.reportError("Undefined Error 41", "올바르지 않은 타입입니다.", lineNumber);
+                        return null;
+                    }
 
-     // 표면적으로만 캐스팅한다. -> [경고] 실질적인 형 검사가 되지 않기 때문에 VM이 죽을 수도 있다.
-     return new ParsedPair(parsedTarget.data, syntax.castingType);
-    }
+                    // 표면적으로만 캐스팅한다. -> [경고] 실질적인 형 검사가 되지 않기 때문에 VM이 죽을 수도 있다.
+                    return new ParsedPair(parsedTarget.data, syntax.castingType);
+                }
 
-   }
+            }
 
-   /**
-    * 접두형 단항 연산자: !(true) , ++a
-    */
-   else if (PrefixSyntax.match(tokens)) {
+            /**
+             * 접두형 단항 연산자: !(true) , ++a
+             */
+            else if (PrefixSyntax.match(tokens))
+            {
 
-    var syntax: PrefixSyntax = PrefixSyntax.analyze(tokens, lineNumber);
+                PrefixSyntax syntax = PrefixSyntax.analyze(tokens, lineNumber);
 
-    if (syntax == null)
-     return null;
+                if (syntax == null)
+                    return null;
 
-    // 피연산자를 파싱한다.
-    var parsedOperand: ParsedPair = parseLine(syntax.operand, lineNumber);
+                // 피연산자를 파싱한다.
+                ParsedPair parsedOperand = parseLine(syntax.operand, lineNumber);
 
-    if (parsedOperand == null)
-     return null;
+                if (parsedOperand == null)
+                    return null;
 
-    // 어드레스 취급하는 경우	
-    if (syntax.operator.type == Type.PrefixIncrement || syntax.operator.type == Type.PrefixDecrement)
+                // 어드레스 취급하는 경우	
+                if (syntax._operator.type == Type.PrefixIncrement || syntax._operator.type == Type.PrefixDecrement)
 {
 
-    // 배열이나 맴버 변수 대입이면
-    if (parsedOperand.data[parsedOperand.data.length - 1].type == Type.ArrayReference)
-    {
-        parsedOperand.data[parsedOperand.data.length - 1].useAsAddress = true;
-        syntax.operator.useAsArrayReference = true;
-    }
+                    // 배열이나 맴버 변수 대입이면
+                    if (parsedOperand.data[parsedOperand.data.Count - 1].type == Type.ArrayReference)
+                    {
+                        parsedOperand.data[parsedOperand.data.Count - 1].useAsAddress = true;
+                        syntax._operator.useAsArrayReference = true;
+                    }
 
-    // 전역/로컬 변수 대입이면
-    else if (parsedOperand.data.length == 1)
-    {
-        parsedOperand.data[parsedOperand.data.length - 1].useAsAddress = true;
-    }
+                    // 전역/로컬 변수 대입이면
+                    else if (parsedOperand.data.Count == 1)
+                    {
+                        parsedOperand.data[parsedOperand.data.Count - 1].useAsAddress = true;
+                    }
 
-    // 그 외의 경우
-    else
-    {
-        Debug.reportError("Type error 44", "증감 연산자 사용이 잘못되었습니다.", lineNumber);
-        return null;
-    }
-}
+                    // 그 외의 경우
+                    else
+                    {
+                        Debug.reportError("Type error 44", "증감 연산자 사용이 잘못되었습니다.", lineNumber);
+                        return null;
+                    }
+                }
 
-    // 접두형 연산자의 경우 숫자만 올 수 있다.
-    if (parsedOperand.type != "number" && parsedOperand.type != "*") {
-     TokenTools.view1D(tokens);
-     Debug.reportError("Type error 43", "접두형 연산자 뒤에는 실수형 데이터만 올 수 있습니다.", lineNumber);
-     return null;
-    }
+                // 접두형 연산자의 경우 숫자만 올 수 있다.
+                if (parsedOperand.type != "number" && parsedOperand.type != "*")
+                {
+                    TokenTools.view1D(tokens);
+                    Debug.reportError("Type error 43", "접두형 연산자 뒤에는 실수형 데이터만 올 수 있습니다.", lineNumber);
+                    return null;
+                }
 
-    var result: Array<Token >= parsedOperand.data;
-    result.push(syntax.operator);
+                List<Token> result = parsedOperand.data;
+                result.Add(syntax._operator);
 
-    // 결과를 리턴한다.
-    return new ParsedPair(result, parsedOperand.type);
-   }
+                // 결과를 리턴한다.
+                return new ParsedPair(result, parsedOperand.type);
+            }
 
-   /**
-    * 접미형 단항 연산자: a++
-    */
-   else if (SuffixSyntax.match(tokens)) {
+            /**
+             * 접미형 단항 연산자: a++
+             */
+            else if (SuffixSyntax.match(tokens))
+            {
 
-    var syntax: SuffixSyntax = SuffixSyntax.analyze(tokens, lineNumber);
+                SuffixSyntax syntax = SuffixSyntax.analyze(tokens, lineNumber);
 
-    if (syntax == null)
-     return null;
+                if (syntax == null)
+                    return null;
 
-    // 피연산자를 파싱한다.
-    var parsedOperand: ParsedPair = parseLine(syntax.operand, lineNumber);
+                // 피연산자를 파싱한다.
+                ParsedPair parsedOperand = parseLine(syntax.operand, lineNumber);
 
-    if (parsedOperand == null)
-     return null;
+                if (parsedOperand == null)
+                    return null;
 
-    // 어드레스 취급하는 경우	
-    if (syntax.operator.type == Type.SuffixIncrement || syntax.operator.type == Type.SuffixDecrement)
+                // 어드레스 취급하는 경우	
+                if (syntax._operator.type == Type.SuffixIncrement || syntax._operator.type == Type.SuffixDecrement)
 {
 
-    // 배열이나 맴버 변수 대입이면
-    if (parsedOperand.data[parsedOperand.data.length - 1].type == Type.ArrayReference)
-    {
+                    // 배열이나 맴버 변수 대입이면
+                    if (parsedOperand.data[parsedOperand.data.Count - 1].type == Type.ArrayReference)
+                    {
 
-        parsedOperand.data[parsedOperand.data.length - 1].useAsAddress = true;
-        syntax.operator.useAsArrayReference = true;
-    }
+                        parsedOperand.data[parsedOperand.data.Count - 1].useAsAddress = true;
+                        syntax._operator.useAsArrayReference = true;
+                    }
 
-    // 전역/로컬 변수 대입이면
-    else if (parsedOperand.data.length == 1)
-    {
-        parsedOperand.data[parsedOperand.data.length - 1].useAsAddress = true;
-    }
+                    // 전역/로컬 변수 대입이면
+                    else if (parsedOperand.data.Count == 1)
+                    {
+                        parsedOperand.data[parsedOperand.data.Count - 1].useAsAddress = true;
+                    }
 
-    // 그 외의 경우
-    else
-    {
-        Debug.reportError("Type error 44", "증감 연산자 사용이 잘못되었습니다.", lineNumber);
-        return null;
-    }
+                    // 그 외의 경우
+                    else
+                    {
+                        Debug.reportError("Type error 44", "증감 연산자 사용이 잘못되었습니다.", lineNumber);
+                        return null;
+                    }
 
-}
+                }
 
-    // 접두형 연산자의 경우 숫자만 올 수 있다.
-    if (parsedOperand.type != "number" && parsedOperand.type != "*") {
-     Debug.reportError("Type error 45", "접미형 연산자 앞에는 실수형 데이터만 올 수 있습니다.", lineNumber);
-     return null;
-    }
+                // 접두형 연산자의 경우 숫자만 올 수 있다.
+                if (parsedOperand.type != "number" && parsedOperand.type != "*")
+                {
+                    Debug.reportError("Type error 45", "접미형 연산자 앞에는 실수형 데이터만 올 수 있습니다.", lineNumber);
+                    return null;
+                }
 
-    var result: Array<Token >= parsedOperand.data;
-    result.push(syntax.operator);
+                List<Token> result = parsedOperand.data;
+                result.Add(syntax._operator);
 
-    // 결과를 리턴한다.
-    return new ParsedPair(result, parsedOperand.type);
-   }
+                // 결과를 리턴한다.
+                return new ParsedPair(result, parsedOperand.type);
+            }
 
-   /**
-    * 이항 연산자: a+b
-    */
-   else if (InfixSyntax.match(tokens)) {
+            /**
+             * 이항 연산자: a+b
+             */
+            else if (InfixSyntax.match(tokens))
+            {
 
-    var syntax: InfixSyntax = InfixSyntax.analyze(tokens, lineNumber);
+                InfixSyntax syntax = InfixSyntax.analyze(tokens, lineNumber);
 
-    if (syntax == null)
-     return null;
+                if (syntax == null)
+                    return null;
 
-    // 양 항을 모두 파싱한다.
-    var left: ParsedPair = parseLine(syntax.left, lineNumber);
-var right: ParsedPair = parseLine(syntax.right, lineNumber);
+                // 양 항을 모두 파싱한다.
+                ParsedPair left = parseLine(syntax.left, lineNumber);
+                ParsedPair right = parseLine(syntax.right, lineNumber);
 
-    if (left == null || right == null) {
-     return null;
-    }
+                if (left == null || right == null)
+                {
+                    return null;
+                }
 
-    // 시스템 값 참조 연산자일 경우
-    if (syntax.operator.type == Type.RuntimeValueAccess)
+                // 시스템 값 참조 연산자일 경우
+                if (syntax._operator.type == Type.RuntimeValueAccess)
 {
 
-    // 에러를 막기 위해 타입을 임의로 지정한다.
-    left.type = right.type = "number";
-}
+                    // 에러를 막기 위해 타입을 임의로 지정한다.
+                    left.type = right.type = "number";
+                }
 
-    // 와일드카드 처리, 와일드카드가 양 변에 한 쪽이라도 있으면
-    if (left.type == "*" || right.type == "*") {
+                // 와일드카드 처리, 와일드카드가 양 변에 한 쪽이라도 있으면
+                if (left.type == "*" || right.type == "*")
+                {
 
-     // 와일드카드가 없는 쪽으로 통일한다.
-     if (left.type != "*")
-      right.type = left.type;
+                    // 와일드카드가 없는 쪽으로 통일한다.
+                    if (left.type != "*")
+                        right.type = left.type;
 
-     else if (right.type != "*")
-      left.type = right.type;
+                    else if (right.type != "*")
+                        left.type = right.type;
 
-     // 모두 와일드카드라면. (배열 원소와 배열 원소끼리 연산)
-     else {
-      // 양 쪽 모두 숫자 처리
-      left.type = right.type = "number";
-     }
-    }
+                    // 모두 와일드카드라면. (배열 원소와 배열 원소끼리 연산)
+                    else
+                    {
+                        // 양 쪽 모두 숫자 처리
+                        left.type = right.type = "number";
+                    }
+                }
 
-    if (right.type == "bool") right.type = "number";
-    if (left.type == "bool") left.type = "number";
+                if (right.type == "bool") right.type = "number";
+                if (left.type == "bool") left.type = "number";
 
-    // 형 체크 프로세스: 두 항 타입이 같을 경우
-    if (left.type == right.type) {
+                // 형 체크 프로세스: 두 항 타입이 같을 경우
+                if (left.type == right.type)
+                {
 
-     // 만약 문자열에 대한 이항 연산이라면, 대입/더하기만 허용한다.
-     if (left.type == "string") {
-      // 산술 연산자를 문자열 연산자로 수정한다.
-      switch (syntax.operator.type)
+                    // 만약 문자열에 대한 이항 연산이라면, 대입/더하기만 허용한다.
+                    if (left.type == "string")
+                    {
+                        // 산술 연산자를 문자열 연산자로 수정한다.
+                        switch (syntax._operator.type)
 {
        case Type.AdditionAssignment:
-        syntax.operator = Token.findByType(Type.AppendAssignment);
-    break;
+        syntax._operator = Token.findByType(Type.AppendAssignment);
+                            break;
        case Type.Addition:
-        syntax.operator = Token.findByType(Type.Append);
-    break;
-       case Type.EqualTo, Type.NotEqualTo:
+        syntax._operator = Token.findByType(Type.Append);
+                            break;
+                            case Type.EqualTo:
+                                case Type.NotEqualTo:
         left.type = right.type = "number";
-    break;
+                            break;
         // 문자열 - 문자열 대입이면 SDW명령을 활성화시킨다.
        case Type.Assignment:
-        syntax.operator.value = "string";
-    break;
-    default:
+        syntax._operator.value = "string";
+                            break;
+                            default:
         Debug.reportError("Syntax error 47", "이 연산자로 문자열 연산을 수행할 수 없습니다.", lineNumber);
-    return null;
-}
+                            return null;
+                        }
 
-     }
+                    }
 
-     // 숫자에 대한 이항 연산일 경우
-     else if (left.type == "number") {
+                    // 숫자에 대한 이항 연산일 경우
+                    else if (left.type == "number")
+                    {
 
-      switch (syntax.operator.type)
+                        switch (syntax._operator.type)
 {
        // 실수형 - 실수형 대입이면 NDW명령을 활성화시킨다.
        case Type.Assignment:
-        syntax.operator.value = "number";
-    break;
-    default:
+        syntax._operator.value = "number";
+                            break;
+                            default:
+                                break;
       }
 
-     }
+                    }
 
-     // 그 외의 배열이나 인스턴스의 경우
-     else {
-      switch (syntax.operator.type)
+                    // 그 외의 배열이나 인스턴스의 경우
+                    else
+                    {
+                        switch (syntax._operator.type)
 {
        // 인스턴스 - 인스턴스 대입이면 NDW명령을 활성화시킨다.
        case Type.Assignment:
-        syntax.operator.value = "instance";
-    break;
-    default:
+        syntax._operator.value = "instance";
+                            break;
+                            default:
         Debug.reportError("Syntax error 48", "대입 명령을 제외한 이항 연산자는 문자/숫자 이외의 처리를 할 수 없습니다.", lineNumber);
-    return null;
-}
-     }
+                            return null;
+                        }
+                    }
 
-    }
+                }
 
-    // 형 체크 프로세스: 두 항의 타입이 다를 경우
-    else {
+                // 형 체크 프로세스: 두 항의 타입이 다를 경우
+                else
+                {
 
-     // 자동 캐스팅을 시도한다.
-     switch (syntax.operator.type)
+                    // 자동 캐스팅을 시도한다.
+                    switch (syntax._operator.type)
 {
       case Type.Addition:
 
        // 문자 + 숫자
        if (left.type == "string" && right.type == "number")
-    {
+                        {
 
-        right.data.push(Token.findByType(Type.CastToString));
-        right.type = "string";
+                            right.data.Add(Token.findByType(Type.CastToString));
+                            right.type = "string";
 
-        // 연산자를 APPEND로 수정한다.
-        syntax.operator = Token.findByType(Type.Append);
+                            // 연산자를 APPEND로 수정한다.
+                            syntax._operator = Token.findByType(Type.Append);
 
-    }
+                        }
 
-    // 숫자 + 문자
-    else if (left.type == "number" && right.type == "string")
-    {
+                        // 숫자 + 문자
+                        else if (left.type == "number" && right.type == "string")
+                        {
 
-        left.data.push(Token.findByType(Type.CastToString));
-        left.type = "string";
+                            left.data.Add(Token.findByType(Type.CastToString));
+                            left.type = "string";
 
-        // 연산자를 APPEND로 수정한다.
-        syntax.operator = Token.findByType(Type.Append);
+                            // 연산자를 APPEND로 수정한다.
+                            syntax._operator = Token.findByType(Type.Append);
 
-    }
-    else
-    {
-        Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
-        return null;
-    }
+                        }
+                        else
+                        {
+                            Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
+                            return null;
+                        }
+                            break;
       case Type.AdditionAssignment:
 
        // 문자 + 숫자
        if (left.type == "string" && right.type == "number")
-    {
-        right.data.push(Token.findByType(Type.CastToString));
-        right.type = "string";
+                        {
+                            right.data.Add(Token.findByType(Type.CastToString));
+                            right.type = "string";
 
-        // 연산자를 APPEND로 수정한다.
-        syntax.operator = Token.findByType(Type.AppendAssignment);
+                            // 연산자를 APPEND로 수정한다.
+                            syntax._operator = Token.findByType(Type.AppendAssignment);
 
-    }
-    else
-    {
-        Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
-        return null;
-    }
+                        }
+                        else
+                        {
+                            Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
+                            return null;
+                        }
+                            break;
 
-    default:
+                        default:
        TokenTools.view1D(tokens);
-    Debug.reportError("Syntax error 50", "다른 두 타입(" + left.type + "," + right.type + ") 간 연산을 실행할 수 없습니다.", lineNumber);
-    return null;
-}
-    }
+                        Debug.reportError("Syntax error 50", "다른 두 타입(" + left.type + "," + right.type + ") 간 연산을 실행할 수 없습니다.", lineNumber);
+                        return null;
+                    }
+                }
 
-    // 대입 명령이면
-    if (syntax.operator.getPrecedence() > 15) {
+                // 대입 명령이면
+                if (syntax._operator.getPrecedence() > 15) {
 
-     // 배열이나 맴버 변수 대입이면
-     if (left.data[left.data.length - 1].type == Type.ArrayReference) {
-      left.data[left.data.length - 1].useAsAddress = true;
-      syntax.operator.useAsArrayReference = true;
-     }
+                    // 배열이나 맴버 변수 대입이면
+                    if (left.data[left.data.Count - 1].type == Type.ArrayReference)
+                    {
+                        left.data[left.data.Count - 1].useAsAddress = true;
+                        syntax._operator.useAsArrayReference = true;
+                    }
 
-     // 전역/로컬 변수 대입이면
-     else {
-      left.data[left.data.length - 1].useAsAddress = true;
-      syntax.operator.useAsArrayReference = false;
-     }
-    }
+                    // 전역/로컬 변수 대입이면
+                    else
+                    {
+                        left.data[left.data.Count - 1].useAsAddress = true;
+                        syntax._operator.useAsArrayReference = false;
+                    }
+                }
 
-    // 시스템 값 참조 연산자일 경우
-    if (syntax.operator.type == Type.RuntimeValueAccess)
+                // 시스템 값 참조 연산자일 경우
+                if (syntax._operator.type == Type.RuntimeValueAccess)
 {
 
-    // 에러를 막기 위해 타입을 임의로 지정한다.
-    left.type = right.type = "*";
+                    // 에러를 막기 위해 타입을 임의로 지정한다.
+                    left.type = right.type = "*";
+                }
+
+                // 형 체크가 끝나면 좌, 우 변을 잇고 리턴한다.
+                List<Token> result = left.data.Concat(right.data).ToList<Token>();
+                result.Add(syntax._operator);
+
+                return new ParsedPair(result, right.type);
+            }
+            TokenTools.view1D(tokens);
+            Debug.reportError("Syntax error 51", "연산자가 없는 식입니다.", lineNumber);
+            return null;
+        }
+
+
+        /**
+         * 스코프 내의 프로시져와 오브젝트 정의를 읽어서 테이블에 기록한다.
+         * 
+         * @param	block
+         * @param	scanOption
+         */
+        public void scan(Lextree block, ScanOption option)
+        {
+
+            // 구조체 스캔일 경우 맴버변수를 저장할 공간 생성
+            List<VariableSymbol> members = null;
+
+            // 임시 스코프용
+            List<Symbol> definedSymbols = new List<Symbol>();
+
+            if (option.inStructure)
+            {
+                members = new List<VariableSymbol>();
+            }
+
+            int i = -1;
+            while (++i < block.branch.Count)
+            {
+
+                Lextree line = block.branch[i];
+                int lineNumber = line.lineNumber;
+
+                // 만약 유닛에 가지가 있다면 넘어감
+                if (line.hasBranch)
+                    continue;
+
+                List<Token> tokens = line.lexData;
+
+                if (tokens.Count < 1)
+                    continue;
+
+                if (VariableDeclarationSyntax.match(tokens))
+                {
+
+                    // 변수(맴버 변수)는 구조체에서만 스캔한다.
+                    if (!option.inStructure)
+                        continue;
+
+                    // 스캔시에는 에러를 표시하지 않는다. (파싱 단계에서 표시)
+                    Debug.supressError(true);
+
+                    VariableDeclarationSyntax syntax = VariableDeclarationSyntax.analyze(tokens, lineNumber);
+
+                    Debug.supressError(false);
+
+                    if (syntax == null)
+                        continue;
+
+                    // 변수 심볼을 생성한다.
+                    VariableSymbol variable = new VariableSymbol(syntax.variableName.value, syntax.variableType.value);
+
+                    // 이미 사용되고 있는 변수인지 체크
+                    if (symbolTable.getVariable(variable.id) != null)
+                    {
+                        Debug.reportError("Duplication error 52", "변수 정의가 충돌합니다.", lineNumber);
+                        continue;
+                    }
+
+                    // 심볼 테이블에 추가
+                    definedSymbols.Add(variable);
+                    symbolTable.add(variable);
+
+                    // 메모리에 할당
+                    if (variable.type == "number" || variable.type == "string" || variable.type == "bool")
+                        assembly.writeCode("SAL " + variable.address);
+                    else
+                        assembly.writeCode("SAA " + variable.address);
+
+                    // 초기화 데이터가 존재할 경우
+                    if (syntax.initializer != null)
+                    {
+                        variable.initialized = true;
+
+                        // 초기화문을 파싱한 후 어셈블리에 쓴다.
+                        ParsedPair parsedInitializer = parseLine(syntax.initializer, lineNumber);
+
+                        if (parsedInitializer == null) continue;
+                        assembly.writeLine(parsedInitializer.data);
+                    }
+
+
+
+                    members.Add(variable);
+                }
+                else if (FunctionDeclarationSyntax.match(tokens))
+                {
+
+                    // 올바르지 않은 선언문일 경우 건너 뛴다.
+                    FunctionDeclarationSyntax syntax = FunctionDeclarationSyntax.analyze(tokens, lineNumber);
+
+                    // 스캔시에는 에러를 표시하지 않는다. (파싱 단계에서 표시)
+                    Debug.supressError(true);
+
+                    if (syntax == null)
+                        continue;
+
+                    Debug.supressError(false);
+
+                    List<VariableSymbol> parameters = new List<VariableSymbol>();
+                    List<String> parametersTypeList = new List<String>();
+
+                    // 매개변수 각각의 유효성을 검증하고 심볼 형태로 가공한다.
+                    foreach (int k in Enumerable.Range(0,syntax.parameters.Count))
+                    {
+
+                        if (!ParameterDeclarationSyntax.match(syntax.parameters[k]))
+                        {
+                            TokenTools.view2D(syntax.parameters);
+                            Debug.reportError("Syntax error 53", "파라미터 정의가 올바르지 않습니다.", lineNumber);
+                            continue;
+                        }
+                        // 매개 변수의 구문을 분석한다.
+                        ParameterDeclarationSyntax parameterSyntax = ParameterDeclarationSyntax.analyze(syntax.parameters[k], lineNumber);
+
+                        // 매개 변수 선언문에 Syntax error가 있을 경우 건너 뛴다.
+                        if (parameterSyntax == null)
+                            continue;
+
+                        // 매개 변수 이름의 유효성을 검증한다.
+                        if (symbolTable.getVariable(parameterSyntax.parameterName.value) != null)
+                        {
+                            Debug.reportError("Duplication error 54", parameterSyntax.parameterName.value + " 변수 정의가 충돌합니다.", lineNumber);
+                            continue;
+                        }
+
+                        // 매개 변수 타입의 유효성을 검증한다.
+                        if (symbolTable.getClass(parameterSyntax.parameterType.value) == null)
+                        {
+                            Debug.reportError("Duplication error 55", "매개 변수 타입이 유효하지 않습니다.", lineNumber);
+                            continue;
+                        }
+
+                        // 매개 변수 심볼을 생성한다
+                        VariableSymbol parameter = new VariableSymbol(parameterSyntax.parameterName.value, parameterSyntax.parameterType.value);
+                        parameterSyntax.parameterName.setTag(parameter);
+                        parameters[k] = parameter;
+                    }
+
+                    // 함수 정의 충돌을 검사한다.
+                    if (symbolTable.getFunction(syntax.functionName.value, parametersTypeList) != null)
+                    {
+                        Debug.reportError("Duplication error 56", "함수 정의가 충돌합니다.", lineNumber);
+                        continue;
+                    }
+
+                    FunctionSymbol functn = new FunctionSymbol(syntax.functionName.value, syntax.returnType.value, parameters);
+
+                    // 프로시져 시작 부분과 종결 부분을 나타내는 플래그를 생성한다.
+                    functn.functionEntry = assignFlag();
+                    functn.functionExit = assignFlag();
+
+                    // 함수 토큰을 태그한다.
+                    syntax.functionName.setTag(functn);
+
+                    // 프로시져를 심볼 테이블에 추가한다.
+                    symbolTable.add(functn);
+                }
+                else if (ClassDeclarationSyntax.match(tokens))
+                {
+
+                    // 오브젝트 선언 구문을 분석한다.
+                    ClassDeclarationSyntax syntax = ClassDeclarationSyntax.analyze(tokens, lineNumber);
+
+                    // 오브젝트 선언 구문에 에러가 있을 경우 건너 뛴다.
+                    if (syntax == null)
+                        continue;
+
+                    // 오브젝트 이름의 유효성을 검증한다.
+                    if (symbolTable.getClass(syntax.className.value) != null)
+                    {
+                        Debug.reportError("Syntax error 56", "오브젝트 정의가 중복되었습니다.", lineNumber);
+                        continue;
+                    }
+
+                    // 오브젝트 구현부가 존재하는지 확인한다.
+                    if (!hasNextBlock(block, i))
+                    {
+                        Debug.reportError("Syntax error 57", "구조체의 구현부가 존재하지 않습니다.", lineNumber);
+                        continue;
+                    }
+
+                    // 오브젝트를 심볼 테이블에 추가한다.
+                    ClassSymbol klass = new ClassSymbol(syntax.className.value);
+
+                    symbolTable.add(klass);
+
+                    // 클래스 내부의 클래스는 지금 스캔하지 않는다.
+                    if (option.inStructure)
+                        continue;
+
+                    // 오브젝트의 하위 항목을 스캔한다.
+                    ScanOption objectOption = option.copy();
+                    objectOption.inStructure = true;
+                    objectOption.parentClass = klass;
+
+
+                    scan(block.branch[++i], objectOption);
+                }
+            }
+
+            // 만약 구조체 스캔일 경우 맴버 변수와 프로시져 정의를 오브젝트 심볼에 쓴다.
+            if (option.inStructure)
+            {
+                option.parentClass.members = members;
+            }
+
+            foreach (int j in Enumerable.Range(0,definedSymbols.Count))
+            {
+                symbolTable.remove(definedSymbols[j]);
+            }
+        }
+
+        /**
+         * 다다음 인덱스에 이어지는 조건문이 존재하는지 확인한다.
+         * 
+         * 
+         * @param tree
+         * @param index
+         * @return
+         */
+        private bool hasNextConditional(Lextree tree, int index)
+        {
+
+            // 다다음 인덱스가 존재하고,
+            if (index + 2 < tree.branch.Count)
+            {
+
+                Lextree possibleBranch = tree.branch[index + 2];
+                if (!possibleBranch.hasBranch && possibleBranch.lexData.Count > 0)
+                {
+                    Token firstToken = possibleBranch.lexData[0];
+
+                    // 이어지는 조건문이 있을 경우
+                    if (firstToken.type == Type.Else)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /** 
+         * 다음 코드 블록이 존재하는지의 여부를 리턴한다.
+         * 
+         * @param tree
+         * @param index
+         * @return
+         */
+        private bool hasNextBlock(Lextree tree, int index)
+        {
+            if ((!(index < tree.branch.Count)) || !tree.branch[index + 1].hasBranch)
+                return false;
+            return true;
+        }
+    }
 }
 
-// 형 체크가 끝나면 좌, 우 변을 잇고 리턴한다.
-var result: Array<Token >= left.data.concat(right.data);
-    result.push(syntax.operator);
-
-    return new ParsedPair(result, right.type);
-   }
-   TokenTools.view1D(tokens);
-   Debug.reportError("Syntax error 51", "연산자가 없는 식입니다.", lineNumber);
-   return null;
-  }
-
-
-  /**
-   * 스코프 내의 프로시져와 오브젝트 정의를 읽어서 테이블에 기록한다.
-   * 
-   * @param	block
-   * @param	scanOption
-   */
-  public
-
-  function scan(block: Lextree, option: ScanOption): Void {
-
-   // 구조체 스캔일 경우 맴버변수를 저장할 공간 생성
-   var members: Array<VariableSymbol >= null;
-
-   // 임시 스코프용
-   var definedSymbols: Array<Symbol >= new Array<Symbol> ();
-
-   if (option.inStructure) {
-    members = new Array<VariableSymbol> ();
-   }
-
-   var i: Int = -1;
-   while (++i<block.branch.length) {
-
-    var line: Lextree = block.branch[i];
-    var lineNumber: Int = line.lineNumber;
-
-    // 만약 유닛에 가지가 있다면 넘어감
-    if (line.hasBranch)
-     continue;
-
-    var tokens: Array<Token >= line.lexData;
-
-    if (tokens.length< 1)
-     continue;
-
-    if (VariableDeclarationSyntax.match(tokens)) {
-
-     // 변수(맴버 변수)는 구조체에서만 스캔한다.
-     if (!option.inStructure)
-      continue;
-
-     // 스캔시에는 에러를 표시하지 않는다. (파싱 단계에서 표시)
-     Debug.supressError(true);
-
-     var syntax: VariableDeclarationSyntax = VariableDeclarationSyntax.analyze(tokens, lineNumber);
-
-     Debug.supressError(false);
-
-     if (syntax == null)
-      continue;
-
-     // 변수 심볼을 생성한다.
-     var variable: VariableSymbol = new VariableSymbol(syntax.variableName.value, syntax.variableType.value);
-
-     // 이미 사용되고 있는 변수인지 체크
-     if (symbolTable.getVariable(variable.id) != null) {
-      Debug.reportError("Duplication error 52", "변수 정의가 충돌합니다.", lineNumber);
-      continue;
-     }
-
-     // 심볼 테이블에 추가
-     definedSymbols.push(variable);
-     symbolTable.add(variable);
-
-     // 메모리에 할당
-     if (variable.type == "number" || variable.type == "string" || variable.type == "bool")
-      assembly.writeCode("SAL " + variable.address);
-     else
-      assembly.writeCode("SAA " + variable.address);
-
-     // 초기화 데이터가 존재할 경우
-     if (syntax.initializer != null) {
-      variable.initialized = true;
-
-      // 초기화문을 파싱한 후 어셈블리에 쓴다.
-      var parsedInitializer: ParsedPair = parseLine(syntax.initializer, lineNumber);
-
-      if (parsedInitializer == null) continue;
-      assembly.writeLine(parsedInitializer.data);
-     }
-
-
-
-     members.push(variable);
-    } else if (FunctionDeclarationSyntax.match(tokens)) {
-
-     // 올바르지 않은 선언문일 경우 건너 뛴다.
-     var syntax: FunctionDeclarationSyntax = FunctionDeclarationSyntax.analyze(tokens, lineNumber);
-
-     // 스캔시에는 에러를 표시하지 않는다. (파싱 단계에서 표시)
-     Debug.supressError(true);
-
-     if (syntax == null)
-      continue;
-
-     Debug.supressError(false);
-
-     var parameters: Array<VariableSymbol >= new Array<VariableSymbol> ();
-     var parametersTypeList: Array<String >= new Array<String> ();
-
-     // 매개변수 각각의 유효성을 검증하고 심볼 형태로 가공한다.
-     for (k in 0...syntax.parameters.length) {
-
-      if (!ParameterDeclarationSyntax.match(syntax.parameters[k])) {
-       TokenTools.view2D(syntax.parameters);
-       Debug.reportError("Syntax error 53", "파라미터 정의가 올바르지 않습니다.", lineNumber);
-       continue;
-      }
-      // 매개 변수의 구문을 분석한다.
-      var parameterSyntax: ParameterDeclarationSyntax = ParameterDeclarationSyntax.analyze(syntax.parameters[k], lineNumber);
-
-      // 매개 변수 선언문에 Syntax error가 있을 경우 건너 뛴다.
-      if (parameterSyntax == null)
-       continue;
-
-      // 매개 변수 이름의 유효성을 검증한다.
-      if (symbolTable.getVariable(parameterSyntax.parameterName.value) != null) {
-       Debug.reportError("Duplication error 54", parameterSyntax.parameterName.value + " 변수 정의가 충돌합니다.", lineNumber);
-       continue;
-      }
-
-      // 매개 변수 타입의 유효성을 검증한다.
-      if (symbolTable.getClass(parameterSyntax.parameterType.value) == null) {
-       Debug.reportError("Duplication error 55", "매개 변수 타입이 유효하지 않습니다.", lineNumber);
-       continue;
-      }
-
-      // 매개 변수 심볼을 생성한다
-      var parameter: VariableSymbol = new VariableSymbol(parameterSyntax.parameterName.value, parameterSyntax.parameterType.value);
-parameterSyntax.parameterName.setTag(parameter);
-      parameters[k] = parameter;
-     }
-
-     // 함수 정의 충돌을 검사한다.
-     if (symbolTable.getFunction(syntax.functionName.value, parametersTypeList) != null) {
-      Debug.reportError("Duplication error 56", "함수 정의가 충돌합니다.", lineNumber);
-      continue;
-     }
-
-     var functn: FunctionSymbol = new FunctionSymbol(syntax.functionName.value, syntax.returnType.value, parameters);
-
-// 프로시져 시작 부분과 종결 부분을 나타내는 플래그를 생성한다.
-functn.functionEntry = assignFlag();
-functn.functionExit = assignFlag();
-
-// 함수 토큰을 태그한다.
-syntax.functionName.setTag(functn);
-
-     // 프로시져를 심볼 테이블에 추가한다.
-     symbolTable.add(functn);
-    } else if (ClassDeclarationSyntax.match(tokens)) {
-
-     // 오브젝트 선언 구문을 분석한다.
-     var syntax: ClassDeclarationSyntax = ClassDeclarationSyntax.analyze(tokens, lineNumber);
-
-     // 오브젝트 선언 구문에 에러가 있을 경우 건너 뛴다.
-     if (syntax == null)
-      continue;
-
-     // 오브젝트 이름의 유효성을 검증한다.
-     if (symbolTable.getClass(syntax.className.value) != null) {
-      Debug.reportError("Syntax error 56", "오브젝트 정의가 중복되었습니다.", lineNumber);
-      continue;
-     }
-
-     // 오브젝트 구현부가 존재하는지 확인한다.
-     if (!hasNextBlock(block, i)) {
-      Debug.reportError("Syntax error 57", "구조체의 구현부가 존재하지 않습니다.", lineNumber);
-      continue;
-     }
-
-     // 오브젝트를 심볼 테이블에 추가한다.
-     var klass: ClassSymbol = new ClassSymbol(syntax.className.value);
-
-symbolTable.add(klass);
-
-     // 클래스 내부의 클래스는 지금 스캔하지 않는다.
-     if (option.inStructure)
-      continue;
-
-     // 오브젝트의 하위 항목을 스캔한다.
-     var objectOption: ScanOption = option.copy();
-     objectOption.inStructure = true;
-     objectOption.parentClass = klass;
-
-
-     scan(block.branch[++i], objectOption);
-    }
-   }
-
-   // 만약 구조체 스캔일 경우 맴버 변수와 프로시져 정의를 오브젝트 심볼에 쓴다.
-   if (option.inStructure) {
-    option.parentClass.members = members;
-   }
-
-   for (i in 0...definedSymbols.length) {
-    symbolTable.remove(definedSymbols[i]);
-   }
-  }
-
-  /**
-   * 다다음 인덱스에 이어지는 조건문이 존재하는지 확인한다.
-   * 
-   * 
-   * @param tree
-   * @param index
-   * @return
-   */
-  private
-
-  function hasNextConditional(tree: Lextree, index: Int): Bool {
-
-   // 다다음 인덱스가 존재하고,
-   if (index + 2 < tree.branch.length) {
-
-    var possibleBranch: Lextree = tree.branch[index + 2];
-    if (!possibleBranch.hasBranch && possibleBranch.lexData.length > 0) {
-     var firstToken: Token = possibleBranch.lexData[0];
-
-     // 이어지는 조건문이 있을 경우
-     if (firstToken.type == Type.Else)
-      return true;
-    }
-   }
-   return false;
-  }
-
-  /**
-   * 다음 코드 블록이 존재하는지의 여부를 리턴한다.
-   * 
-   * @param tree
-   * @param index
-   * @return
-   */
-  private
-
-  function hasNextBlock(tree: Lextree, index: Int): Bool {
-   if ((!(index<tree.branch.length)) || !tree.branch[index + 1].hasBranch)
-    return false;
-   return true;
-  }
- }
-
-
- /**
-  * 파싱된 페어
-  */
- class ParsedPair
+/**
+ * 파싱된 페어
+ */
+class ParsedPair
 {
+    public List<Token> data;
+    public string type;
 
-    public
-    var data: Array<Token> ;
-  public
-  var type: String;
+    public ParsedPair(List<Token> data, string type)
+    {
+        this.data = data;
+        this.type = type;
+    }
+}
 
-  public
-
-  function new(data: Array<Token> , type: String) {
-   this.data = data;
-   this.type = type;
-  }
- }
-
- /**
-  * 파싱 옵션 클래스
-  */
- class ParseOption
+/**
+ * 파싱 옵션 클래스
+ */
+class ParseOption
 {
 
     /**
      * 파싱 옵션
      */
+    public bool inStructure = false;
+    public bool inFunction = false;
+    public bool inIterator = false;
+
+    /**
+     * 블록의 시작과 끝 옵션
+     */
+    public int blockEntry = 0;
+    public int blockExit = 0;
+
+    /**
+     * 함수 내부일 경우의 함수 참조
+     */
+    public FunctionSymbol parentFunction;
+
+    /**
+     * 파싱 옵션 복사
+     * 
+     * @return
+     */
     public
-    var inStructure: Bool = false;
-  public
-  var inFunction: Bool = false;
-  public
-  var inIterator: Bool = false;
 
-  /**
-   * 블록의 시작과 끝 옵션
-   */
-  public
-  var blockEntry: Int = 0;
-  public
-  var blockExit: Int = 0;
+    ParseOption copy()
+    {
 
-  /**
-   * 함수 내부일 경우의 함수 참조
-   */
-  public
-  var parentFunction: FunctionSymbol;
+        ParseOption option = new ParseOption();
 
-  public
+        option.inStructure = inStructure;
+        option.inFunction = inFunction;
+        option.inIterator = inIterator;
+        option.blockEntry = blockEntry;
+        option.blockExit = blockExit;
+        option.parentFunction = parentFunction;
 
-  function new() {}
+        return option;
+    }
 
-  /**
-   * 파싱 옵션 복사
-   * 
-   * @return
-   */
-  public
+}
 
-  function copy(): ParseOption {
-
-   var option: ParseOption = new ParseOption();
-
-    option.inStructure = inStructure;
-   option.inFunction = inFunction;
-   option.inIterator = inIterator;
-   option.blockEntry = blockEntry;
-   option.blockExit = blockExit;
-   option.parentFunction = parentFunction;
-
-   return option;
-  }
-
- }
-
- /**
-  * 스캔 옵션 클래스
-  */
- class ScanOption
+/**
+ * 스캔 옵션 클래스
+ */
+class ScanOption
 {
 
     /**
      * 스캔 옵션
      */
-    public
-    var inStructure: Bool = false;
+    public bool inStructure = false;
 
-  /**
-   * 함수 내부일 경우의 함수 참조
-   */
-  public
-  var parentClass: ClassSymbol;
+    /**
+     * 함수 내부일 경우의 함수 참조
+     */
+    public ClassSymbol parentClass;
 
-  public
+    /**
+     * 스캔 옵션 복사
+     * 
+     * @return
+     */
+    public ScanOption copy()
+    {
 
-  function new() {}
+        ScanOption option = new ScanOption();
 
-  /**
-   * 스캔 옵션 복사
-   * 
-   * @return
-   */
-  public
+        option.inStructure = inStructure;
+        option.parentClass = parentClass;
 
-  function copy(): ScanOption {
-
-   var option: ScanOption = new ScanOption();
-
-    option.inStructure = inStructure;
-   option.parentClass = parentClass;
-
-   return option;
-  }
- }
+        return option;
+    }
 }
