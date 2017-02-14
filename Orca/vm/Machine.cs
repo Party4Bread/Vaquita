@@ -45,6 +45,7 @@ namespace Orca.vm
         public Machine(int maximumStackSize = 1024 * 20)
         {
             this.maximumStackSize = maximumStackSize;
+            opcode.Clear();
             opcode.Add("PSH", 0x1);
             opcode.Add("PSR", 0x2);
             opcode.Add("PSM", 0x3);
@@ -105,7 +106,7 @@ namespace Orca.vm
                     // PSM	
                     case 3: mainStack.Push(memory.read(inst.intArg)); break;
                     // POP	
-                    case 4: register[inst.intArg] = mainStack.Pop(); break;
+                    case 4: register.Insert(inst.intArg,mainStack.Pop()); break;
                     // OPR	
                     case 5: mainStack.Push(operate(inst.intArg)); break;
 

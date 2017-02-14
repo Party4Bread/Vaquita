@@ -1803,7 +1803,7 @@ namespace Orca
                         // 매개 변수 심볼을 생성한다
                         VariableSymbol parameter = new VariableSymbol(parameterSyntax.parameterName.value, parameterSyntax.parameterType.value);
                         parameterSyntax.parameterName.setTag(parameter);
-                        parameters[k] = parameter;
+                        parameters.Insert(k, parameter);
                     }
 
                     // 함수 정의 충돌을 검사한다.

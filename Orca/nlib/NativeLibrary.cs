@@ -25,9 +25,9 @@ namespace Orca.nlib
         }
 
         public void initialize()
-        {
+        {/*
             if (initialized) return;
-            initialized = true;
+            initialized = true;*/
 
             classes = new List<NativeClass>();
             functions = new List<NativeFunction>();

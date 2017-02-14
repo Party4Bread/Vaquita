@@ -151,7 +151,7 @@ namespace Orca.symbol
         {
             foreach (var i in classes)
             {
-                if (Encoding.UTF8.GetBytes(i.id) == Encoding.UTF8.GetBytes(idC))
+                if (Enumerable.SequenceEqual(Encoding.UTF8.GetBytes(i.id), Encoding.UTF8.GetBytes(idC)))
                 {
                     return i;
                 }

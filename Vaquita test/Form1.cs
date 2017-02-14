@@ -26,13 +26,8 @@ namespace Vaquita_test
             var machine = new Machine();
             machine.load(program);
             machine.run();
-            Timer time = new Timer();
-            time.Tick += delegate
-            {
-                textBox3.Text = machine.io.console;
-            };
-            time.Interval = 100;
-            time.Start();
+            textBox3.Text = machine.io.console;
+            GC.Collect();
         }
     }
 }
