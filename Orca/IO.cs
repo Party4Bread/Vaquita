@@ -13,7 +13,7 @@ namespace Orca
         public bool isConsolefreeze = true,isInputpending=false;
         public void print(object opt) {
             if(opt is string)
-                console += opt as string + '\n';            
+                console += opt as string + Environment.NewLine;            
         }
         public void read(string ipt)
         {

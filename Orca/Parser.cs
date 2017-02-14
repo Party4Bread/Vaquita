@@ -1229,7 +1229,7 @@ namespace Orca
                 List<List<Token>> parsedReferences = new List<List<Token>>();
 
                 // 가장 낮은 인덱스부터 차례로 파싱한다.
-                foreach (int i in Enumerable.Range(0,syntax.references.Count))
+                foreach (int i in Enumerable.Range(0, syntax.references.Count))
                 {
 
                     List<Token> reference = syntax.references[syntax.references.Count - 1 - i];
@@ -1350,7 +1350,7 @@ namespace Orca
 
                 // 어드레스 취급하는 경우	
                 if (syntax._operator.type == Type.PrefixIncrement || syntax._operator.type == Type.PrefixDecrement)
-{
+                {
 
                     // 배열이나 맴버 변수 대입이면
                     if (parsedOperand.data[parsedOperand.data.Count - 1].type == Type.ArrayReference)
@@ -1407,7 +1407,7 @@ namespace Orca
 
                 // 어드레스 취급하는 경우	
                 if (syntax._operator.type == Type.SuffixIncrement || syntax._operator.type == Type.SuffixDecrement)
-{
+                {
 
                     // 배열이나 맴버 변수 대입이면
                     if (parsedOperand.data[parsedOperand.data.Count - 1].type == Type.ArrayReference)
@@ -1468,7 +1468,7 @@ namespace Orca
 
                 // 시스템 값 참조 연산자일 경우
                 if (syntax._operator.type == Type.RuntimeValueAccess)
-{
+                {
 
                     // 에러를 막기 위해 타입을 임의로 지정한다.
                     left.type = right.type = "number";
@@ -1505,24 +1505,24 @@ namespace Orca
                     {
                         // 산술 연산자를 문자열 연산자로 수정한다.
                         switch (syntax._operator.type)
-{
-       case Type.AdditionAssignment:
-        syntax._operator = Token.findByType(Type.AppendAssignment);
-                            break;
-       case Type.Addition:
-        syntax._operator = Token.findByType(Type.Append);
-                            break;
+                        {
+                            case Type.AdditionAssignment:
+                                syntax._operator = Token.findByType(Type.AppendAssignment);
+                                break;
+                            case Type.Addition:
+                                syntax._operator = Token.findByType(Type.Append);
+                                break;
                             case Type.EqualTo:
-                                case Type.NotEqualTo:
-        left.type = right.type = "number";
-                            break;
-        // 문자열 - 문자열 대입이면 SDW명령을 활성화시킨다.
-       case Type.Assignment:
-        syntax._operator.value = "string";
-                            break;
+                            case Type.NotEqualTo:
+                                left.type = right.type = "number";
+                                break;
+                            // 문자열 - 문자열 대입이면 SDW명령을 활성화시킨다.
+                            case Type.Assignment:
+                                syntax._operator.value = "string";
+                                break;
                             default:
-        Debug.reportError("Syntax error 47", "이 연산자로 문자열 연산을 수행할 수 없습니다.", lineNumber);
-                            return null;
+                                Debug.reportError("Syntax error 47", "이 연산자로 문자열 연산을 수행할 수 없습니다.", lineNumber);
+                                return null;
                         }
 
                     }
@@ -1532,14 +1532,14 @@ namespace Orca
                     {
 
                         switch (syntax._operator.type)
-{
-       // 실수형 - 실수형 대입이면 NDW명령을 활성화시킨다.
-       case Type.Assignment:
-        syntax._operator.value = "number";
-                            break;
+                        {
+                            // 실수형 - 실수형 대입이면 NDW명령을 활성화시킨다.
+                            case Type.Assignment:
+                                syntax._operator.value = "number";
+                                break;
                             default:
                                 break;
-      }
+                        }
 
                     }
 
@@ -1547,14 +1547,14 @@ namespace Orca
                     else
                     {
                         switch (syntax._operator.type)
-{
-       // 인스턴스 - 인스턴스 대입이면 NDW명령을 활성화시킨다.
-       case Type.Assignment:
-        syntax._operator.value = "instance";
-                            break;
+                        {
+                            // 인스턴스 - 인스턴스 대입이면 NDW명령을 활성화시킨다.
+                            case Type.Assignment:
+                                syntax._operator.value = "instance";
+                                break;
                             default:
-        Debug.reportError("Syntax error 48", "대입 명령을 제외한 이항 연산자는 문자/숫자 이외의 처리를 할 수 없습니다.", lineNumber);
-                            return null;
+                                Debug.reportError("Syntax error 48", "대입 명령을 제외한 이항 연산자는 문자/숫자 이외의 처리를 할 수 없습니다.", lineNumber);
+                                return null;
                         }
                     }
 
@@ -1566,66 +1566,67 @@ namespace Orca
 
                     // 자동 캐스팅을 시도한다.
                     switch (syntax._operator.type)
-{
-      case Type.Addition:
+                    {
+                        case Type.Addition:
 
-       // 문자 + 숫자
-       if (left.type == "string" && right.type == "number")
-                        {
+                            // 문자 + 숫자
+                            if (left.type == "string" && right.type == "number")
+                            {
 
-                            right.data.Add(Token.findByType(Type.CastToString));
-                            right.type = "string";
+                                right.data.Add(Token.findByType(Type.CastToString));
+                                right.type = "string";
 
-                            // 연산자를 APPEND로 수정한다.
-                            syntax._operator = Token.findByType(Type.Append);
+                                // 연산자를 APPEND로 수정한다.
+                                syntax._operator = Token.findByType(Type.Append);
 
-                        }
+                            }
 
-                        // 숫자 + 문자
-                        else if (left.type == "number" && right.type == "string")
-                        {
+                            // 숫자 + 문자
+                            else if (left.type == "number" && right.type == "string")
+                            {
 
-                            left.data.Add(Token.findByType(Type.CastToString));
-                            left.type = "string";
+                                left.data.Add(Token.findByType(Type.CastToString));
+                                left.type = "string";
 
-                            // 연산자를 APPEND로 수정한다.
-                            syntax._operator = Token.findByType(Type.Append);
+                                // 연산자를 APPEND로 수정한다.
+                                syntax._operator = Token.findByType(Type.Append);
 
-                        }
-                        else
-                        {
-                            Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
-                            return null;
-                        }
+                            }
+                            else
+                            {
+                                Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
+                                return null;
+                            }
                             break;
-      case Type.AdditionAssignment:
+                        case Type.AdditionAssignment:
 
-       // 문자 + 숫자
-       if (left.type == "string" && right.type == "number")
-                        {
-                            right.data.Add(Token.findByType(Type.CastToString));
-                            right.type = "string";
+                            // 문자 + 숫자
+                            if (left.type == "string" && right.type == "number")
+                            {
+                                right.data.Add(Token.findByType(Type.CastToString));
+                                right.type = "string";
 
-                            // 연산자를 APPEND로 수정한다.
-                            syntax._operator = Token.findByType(Type.AppendAssignment);
+                                // 연산자를 APPEND로 수정한다.
+                                syntax._operator = Token.findByType(Type.AppendAssignment);
 
-                        }
-                        else
-                        {
-                            Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
-                            return null;
-                        }
+                            }
+                            else
+                            {
+                                Debug.reportError("Syntax error 49", "다른 두 타입 간 연산을 실행할 수 없습니다.", lineNumber);
+                                return null;
+                            }
                             break;
 
                         default:
-       TokenTools.view1D(tokens);
-                        Debug.reportError("Syntax error 50", "다른 두 타입(" + left.type + "," + right.type + ") 간 연산을 실행할 수 없습니다.", lineNumber);
-                        return null;
+                            TokenTools.view1D(tokens);
+                            Debug.reportError("Syntax error 50", "다른 두 타입(" + left.type + "," + right.type + ") 간 연산을 실행할 수 없습니다.", lineNumber);
+                            return null;
                     }
                 }
 
                 // 대입 명령이면
-                if (syntax._operator.getPrecedence() > 15) {
+                if (syntax._operator.getPrecedence() > 15)
+                {
 
                     // 배열이나 맴버 변수 대입이면
                     if (left.data[left.data.Count - 1].type == Type.ArrayReference)
@@ -1644,7 +1645,7 @@ namespace Orca
 
                 // 시스템 값 참조 연산자일 경우
                 if (syntax._operator.type == Type.RuntimeValueAccess)
-{
+                {
 
                     // 에러를 막기 위해 타입을 임의로 지정한다.
                     left.type = right.type = "*";
@@ -1769,7 +1770,7 @@ namespace Orca
                     List<String> parametersTypeList = new List<String>();
 
                     // 매개변수 각각의 유효성을 검증하고 심볼 형태로 가공한다.
-                    foreach (int k in Enumerable.Range(0,syntax.parameters.Count))
+                    foreach (int k in Enumerable.Range(0, syntax.parameters.Count))
                     {
 
                         if (!ParameterDeclarationSyntax.match(syntax.parameters[k]))
@@ -1873,7 +1874,7 @@ namespace Orca
                 option.parentClass.members = members;
             }
 
-            foreach (int j in Enumerable.Range(0,definedSymbols.Count))
+            foreach (int j in Enumerable.Range(0, definedSymbols.Count))
             {
                 symbolTable.remove(definedSymbols[j]);
             }

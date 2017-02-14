@@ -326,7 +326,7 @@ namespace Orca.vm
                     //counterMem [counterMem.Count - 1]++; break;
                     List<object> counterMem = memory.storage[counterAddr];
                     {
-                        double __temp_ret1 = ((double)(counterMem[counterMem.Count - 1]));
+                        double __temp_ret1 = (Convert.ToDouble((counterMem[counterMem.Count - 1])));
                         counterMem[counterMem.Count - 1] = (__temp_ret1 + 1.0);
                     }
                     break;

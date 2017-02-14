@@ -151,7 +151,7 @@ namespace Orca
                     }
 
                     // 괄호의 전체 내용에 대해 구문 분석을 수행한 후, 유닛에 추가한다. (시작, 끝 괄호 제외)
-                    Lextree block = analyze(code.Substring(i + 1, i + j - 1));
+                    Lextree block = analyze(code.Substring(i + 1, i + j - 1 - (i+1)));
                     tree.branch.Add(block);
 
                     // 다음 과정을 준비한다.

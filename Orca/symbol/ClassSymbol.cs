@@ -12,7 +12,7 @@ namespace Orca.symbol
          * 클래스 맴버 (함수, 변수)
          */
         public List<VariableSymbol> members;
-        string id;
+        public new string id;
         public ClassSymbol(string id):base()
         {
             this.id = id;

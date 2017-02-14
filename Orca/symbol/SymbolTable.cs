@@ -91,11 +91,11 @@ namespace Orca.symbol
          * @param	id
          * @return
          */
-        public VariableSymbol getVariable(string id)
+        public VariableSymbol getVariable(string idC)
         {
             foreach (int i in Enumerable.Range(0, variables.Count))
             {
-                if (variables[i].id == id)
+                if (variables[i].id == idC)
                     return variables[i];
             }
             return null;
@@ -147,12 +147,14 @@ namespace Orca.symbol
          * @param	id
          * @return
          */
-        public ClassSymbol getClass(string id)
+        public ClassSymbol getClass(string idC)
         {
-            foreach (int i in Enumerable.Range(0, classes.Count))
+            foreach (var i in classes)
             {
-                if (classes[i].id == id)
-                    return classes[i];
+                if (Encoding.UTF8.GetBytes(i.id) == Encoding.UTF8.GetBytes(idC))
+                {
+                    return i;
+                }
             }
             return null;
         }
