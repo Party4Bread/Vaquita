@@ -62,7 +62,7 @@ namespace Orca
                     shellDepth--;
                 else if (tokens[i].type == delimiter && ((subscriptDepth == 0 && shellDepth == 0) || !sensitive))
                 {
-                    elements[elementIndex++] = tokens.GetRange(lastIndex + 1, i-(lastIndex + 1));
+                    elements.Insert(elementIndex++,tokens.GetRange(lastIndex + 1, i-(lastIndex + 1)));
                     lastIndex = i;
                 }
                 i++;

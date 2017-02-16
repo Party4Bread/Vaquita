@@ -137,7 +137,7 @@ namespace Orca.vm
                     case 14:
                         List<object> targetArray = mainStack.Pop() as List<object>;
                         int targetIndex = Convert.ToInt32(mainStack.Pop());
-                        targetArray[targetIndex] = mainStack.Pop(); break;
+                        targetArray.Insert(targetIndex,mainStack.Pop()); break;
                     // OSC
                     case 15: scope.Add(new List<int>()); break;
                     // CSC
