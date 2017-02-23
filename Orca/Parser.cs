@@ -21,6 +21,7 @@ namespace Orca
         NativeLibrary nlib;
         public string buildPath;
         private int flagCount = 0;
+        //public Debug debugger = new Debug();
         private int assignFlag()
         {
             return flagCount++;
@@ -39,7 +40,7 @@ namespace Orca
             nlib.load(symbolTable);
             // 어휘 트리를 취득한다.
             Lextree lextree = lexer.analyze(code);
-            //lexer.viewHierarchy(lextree, 0);
+            //lexer.viewHierarchy(lextree, 0);   vcv
             // 현재 스코프를 스캔한다. 현재 스코프에서는 오브젝트 정의와 프로시저 정의만을 스캔한다.
             scan(lextree, new ScanOption());
             parseBlock(lextree, new ParseOption());

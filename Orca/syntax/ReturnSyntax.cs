@@ -48,7 +48,14 @@ namespace Orca.syntax
          */
         public static ReturnSyntax analyze(List<Token> tokens, int lineNumber)
         {
-            return new ReturnSyntax(tokens.GetRange(1, 1));
+            try
+            {
+                return new ReturnSyntax(tokens.GetRange(1, 1));
+            }
+            catch(Exception)
+            {
+                return new ReturnSyntax(new List<Token>());
+            }
         }
     }
 }
