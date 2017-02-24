@@ -23,7 +23,6 @@ namespace Vaquita_test
         {
             var parser = new Parser();
             var program = parser.compile(textBox1.Text);
-            parser.d
             var machine = new Machine();
             machine.load(program);
             machine.run();
